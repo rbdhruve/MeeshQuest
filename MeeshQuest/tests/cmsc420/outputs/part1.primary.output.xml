@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<results>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="A"/>
+      <x value="100"/>
+      <y value="100"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="B"/>
+      <x value="170"/>
+      <y value="170"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="C"/>
+      <x value="30"/>
+      <y value="30"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="D"/>
+      <x value="230"/>
+      <y value="100"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <error type="duplicateCityCoordinates">
+    <command name="createCity"/>
+    <parameters>
+      <name value="E"/>
+      <x value="100"/>
+      <y value="100"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+  </error>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="F"/>
+      <x value="114"/>
+      <y value="120"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="G"/>
+      <x value="240"/>
+      <y value="234"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="H"/>
+      <x value="50"/>
+      <y value="90"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="I"/>
+      <x value="70"/>
+      <y value="40"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="createCity"/>
+    <parameters>
+      <name value="J"/>
+      <x value="220"/>
+      <y value="65"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="listCities"/>
+    <parameters>
+      <sortBy value="name"/>
+    </parameters>
+    <output>
+      <cityList>
+        <city color="black" name="J" radius="5" x="220" y="65"/>
+        <city color="black" name="I" radius="5" x="70" y="40"/>
+        <city color="black" name="H" radius="5" x="50" y="90"/>
+        <city color="black" name="G" radius="5" x="240" y="234"/>
+        <city color="black" name="F" radius="5" x="114" y="120"/>
+        <city color="black" name="D" radius="5" x="230" y="100"/>
+        <city color="black" name="C" radius="5" x="30" y="30"/>
+        <city color="black" name="B" radius="5" x="170" y="170"/>
+        <city color="black" name="A" radius="5" x="100" y="100"/>
+      </cityList>
+    </output>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="A"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="B"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="C"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="D"/>
+    </parameters>
+    <output/>
+  </success>
+  <error type="nameNotInDictionary">
+    <command name="mapCity"/>
+    <parameters>
+      <name value="E"/>
+    </parameters>
+  </error>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="F"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="G"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="H"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="I"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="mapCity"/>
+    <parameters>
+      <name value="J"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command name="printPRQuadtree"/>
+    <parameters/>
+    <output>
+      <quadtree>
+        <gray x="128" y="128">
+          <white/>
+          <gray x="192" y="192">
+            <white/>
+            <black name="G" x="240" y="234"/>
+            <black name="B" x="170" y="170"/>
+            <white/>
+          </gray>
+          <gray x="64" y="64">
+            <black name="H" x="50" y="90"/>
+            <gray x="96" y="96">
+              <white/>
+              <gray x="112" y="112">
+                <white/>
+                <black name="F" x="114" y="120"/>
+                <black name="A" x="100" y="100"/>
+                <white/>
+              </gray>
+              <white/>
+              <white/>
+            </gray>
+            <black name="C" x="30" y="30"/>
+            <black name="I" x="70" y="40"/>
+          </gray>
+          <gray x="192" y="64">
+            <white/>
+            <gray x="224" y="96">
+              <white/>
+              <black name="D" x="230" y="100"/>
+              <black name="J" x="220" y="65"/>
+              <white/>
+            </gray>
+            <white/>
+            <white/>
+          </gray>
+        </gray>
+      </quadtree>
+    </output>
+  </success>
+  <success>
+    <command name="rangeCities"/>
+    <parameters>
+      <x value="230"/>
+      <y value="100"/>
+      <radius value="0"/>
+    </parameters>
+    <output>
+      <cityList>
+        <city color="black" name="D" radius="5" x="230" y="100"/>
+      </cityList>
+    </output>
+  </success>
+  <success>
+    <command name="nearestCity"/>
+    <parameters>
+      <x value="100"/>
+      <y value="100"/>
+    </parameters>
+    <output>
+      <city color="black" name="A" radius="5" x="100" y="100"/>
+    </output>
+  </success>
+</results>

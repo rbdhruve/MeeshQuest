@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<results>
+  <success>
+    <command id="1" name="createCity"/>
+    <parameters>
+      <name value="Baltimore"/>
+      <x value="140"/>
+      <y value="37"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command id="2" name="printDodekaTrie"/>
+    <parameters/>
+    <output>
+      <DodekaTrie cardinality="1" leafOrder="1">
+        <leaf>
+          <entry key="Baltimore" value="(140,37)"/>
+        </leaf>
+      </DodekaTrie>
+    </output>
+  </success>
+  <success>
+    <command id="3" name="createCity"/>
+    <parameters>
+      <name value="Chicago"/>
+      <x value="133"/>
+      <y value="34"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command id="4" name="printDodekaTrie"/>
+    <parameters/>
+    <output>
+      <DodekaTrie cardinality="2" leafOrder="1">
+        <guide>
+          <leaf>
+            <entry key="Chicago" value="(133,34)"/>
+          </leaf>
+          <key value="Baltimore"/>
+          <leaf>
+            <entry key="Baltimore" value="(140,37)"/>
+          </leaf>
+        </guide>
+      </DodekaTrie>
+    </output>
+  </success>
+  <success>
+    <command id="5" name="createCity"/>
+    <parameters>
+      <name value="Atlanta"/>
+      <x value="278"/>
+      <y value="765"/>
+      <radius value="5"/>
+      <color value="black"/>
+    </parameters>
+    <output/>
+  </success>
+  <success>
+    <command id="6" name="printDodekaTrie"/>
+    <parameters/>
+    <output>
+      <DodekaTrie cardinality="3" leafOrder="1">
+        <guide>
+          <leaf>
+            <entry key="Chicago" value="(133,34)"/>
+          </leaf>
+          <key value="Baltimore"/>
+          <leaf>
+            <entry key="Baltimore" value="(140,37)"/>
+          </leaf>
+          <key value="Atlanta"/>
+          <leaf>
+            <entry key="Atlanta" value="(278,765)"/>
+          </leaf>
+        </guide>
+      </DodekaTrie>
+    </output>
+  </success>
+  <success>
+    <command id="7" name="clearAll"/>
+    <parameters/>
+    <output/>
+  </success>
+</results>
