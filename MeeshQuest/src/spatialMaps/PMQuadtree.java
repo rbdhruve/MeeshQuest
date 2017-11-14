@@ -74,52 +74,30 @@ public class PMQuadtree {
 		private Node add(Geometry g) {
 			if (g.isCity()) {
 				City c = (City) g;
-				int x = (int) c.getPt().getX();
-				int y = (int) c.getPt().getY();
-				if (x > ((getXmax()-getXmin())/2) + getXmin()) {
-					if (y > ((getYmax()-getYmin())/2) + getYmin()) {
-						NE = insertHelp(g, NE);
-					} else if (y == ((getYmax()-getYmin())/2) + getYmin()) {
-						NE = insertHelp(g, NE);
-						SE = insertHelp(g, SE);
-					} else {
-						SE = insertHelp(g, SE);
-					}
-				} else if (x == ((getXmax()-getXmin())/2) + getXmin()) { 
-					if (y > ((getYmax()-getYmin())/2) + getYmin()) {
-						NE = insertHelp(g, NE);
-						NW = insertHelp(g, NW);
-					} else if (y == ((getYmax()-getYmin())/2) + getYmin()) {
-						NE = insertHelp(g, NE);
-						NW = insertHelp(g, NW);
-						SE = insertHelp(g, SE);
-						SW = insertHelp(g, SW);
-					} else {
-						SE = insertHelp(g, SE);
-						SW = insertHelp(g, SW);
-					}
-				} else {
-					if (y > ((getYmax()-getYmin())/2) + getYmin()) {
-						NW = insertHelp(g, NW);
-					} else if (y == ((getYmax()-getYmin())/2) + getYmin()) {
-						NW = insertHelp(g, NW);
-						SW = insertHelp(g, SW);
-					} else {
-						SW = insertHelp(g, SW);
-					}
+				if (Inclusive2DIntersectionVerifier.intersects(c.getPt(), NW.getRegion())) {
+					NW = insertHelp(c, NW);
+				}
+				if (Inclusive2DIntersectionVerifier.intersects(c.getPt(), NE.getRegion())) {
+					NE = insertHelp(c, NE);
+				}
+				if (Inclusive2DIntersectionVerifier.intersects(c.getPt(), SW.getRegion())) {
+					SW = insertHelp(c, SW);
+				}
+				if (Inclusive2DIntersectionVerifier.intersects(c.getPt(), SE.getRegion())) {
+					SE = insertHelp(c, SE);
 				}
 			} else {
 				Road r = (Road) g;
-				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), NW.getRegion())) {
+				if (Inclusive2DIntersectionVerifier.intersects(r.getLine(), NW.getRegion())) {
 					NW = insertHelp(r, NW);
 				}
-				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), NE.getRegion())) {
+				if (Inclusive2DIntersectionVerifier.intersects(r.getLine(), NE.getRegion())) {
 					NE = insertHelp(r, NE);
 				}
-				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), SW.getRegion())) {
+				if (Inclusive2DIntersectionVerifier.intersects(r.getLine(), SW.getRegion())) {
 					SW = insertHelp(r, SW);
 				}
-				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), SE.getRegion())) {
+				if (Inclusive2DIntersectionVerifier.intersects(r.getLine(), SE.getRegion())) {
 					SE = insertHelp(r, SE);
 				}
 			}
