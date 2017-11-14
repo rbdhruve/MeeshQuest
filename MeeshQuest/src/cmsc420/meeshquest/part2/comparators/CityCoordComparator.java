@@ -1,8 +1,8 @@
-package cmsc420.meeshquest.part1.comparators;
+package cmsc420.meeshquest.part2.comparators;
 
 import java.util.Comparator;
 
-import cmsc420.meeshquest.part1.City;
+import cmsc420.meeshquest.part2.City;
 
 public class CityCoordComparator implements Comparator<City> {
 

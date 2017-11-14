@@ -1,6 +1,7 @@
-package cmsc420.meeshquest.part1;
+package cmsc420.meeshquest.part2;
 
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 
 public class Road extends Geometry {
 
@@ -13,6 +14,26 @@ public class Road extends Geometry {
 		this.end = end;
 		length = start.getPt().distance(end.getPt());
 		line = new Line2D.Float(start.getPt(), end.getPt());
+	}
+	
+	public City getStart() {
+		return start;
+	}
+	
+	public City getEnd() {
+		return end;
+	}
+	
+	public Point2D getStartCoord() {
+		return start.getPt();
+	}
+	
+	public Point2D getEndCoord() {
+		return end.getPt();
+	}
+	
+	public Line2D.Float getLine() {
+		return line;
 	}
 	
 	@Override

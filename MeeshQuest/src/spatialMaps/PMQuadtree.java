@@ -1,11 +1,12 @@
 package spatialMaps;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import cmsc420.meeshquest.part1.City;
-import cmsc420.meeshquest.part1.Geometry;
-import cmsc420.meeshquest.part1.Road;
-import spatialMaps.PRQuadTree.GreyNode;
+import cmsc420.geom.Inclusive2DIntersectionVerifier;
+import cmsc420.meeshquest.part2.City;
+import cmsc420.meeshquest.part2.Geometry;
+import cmsc420.meeshquest.part2.Road;
 
 @SuppressWarnings("unchecked")
 public class PMQuadtree {
@@ -21,6 +22,7 @@ public class PMQuadtree {
 			super.setXmax(xmax);
 			super.setYmin(ymin);
 			super.setYmax(ymax);
+			super.setRegion(xmin, ymax, (xmax-xmin), (ymax-ymin));
 		}
 		
 		private boolean containsCity() {
@@ -31,25 +33,22 @@ public class PMQuadtree {
 			return false;
 		}
 		
-		private void add(Geometry g) {
-			items.add(g);
-		}
-		
-		private Node add(Geometry g, Node root) {
+		private Node add(Geometry g) {
 			if (g.getType() == Geometry.POINT && containsCity()) {
-				root = partition(g, root);
-				return root;
+				return partition(g);
 			} else {
 				items.add(g);
 				return this;
 			}
 		}
 		
-		private Node partition(Geometry g, Node root) {
-			root = new GreyNode(root.getXmin(), root.getXmax(), root.getYmin(), root.getYmax());
-			root = ((GreyNode) root).add(items, root);
-			root = insertHelp(g, root);
-			return root;
+		private Node partition(Geometry g) {
+			Node n = new GreyNode(getXmin(), getXmax(), getYmin(), getYmax());
+			for(Geometry geo : items) {
+				n = ((GreyNode) n).add(geo);
+			}
+			n = ((GreyNode) n).add(g);
+			return n;
 		}
 		
 		private Node remove(Geometry g, Node root) {
@@ -65,59 +64,67 @@ public class PMQuadtree {
 			super.setXmax(xmax);
 			super.setYmin(ymin);
 			super.setYmax(ymax);
+			super.setRegion(xmin, ymax, (xmax-xmin), (ymax-ymin));
 			NW = new WhiteNode(xmin,(xmax+xmin)/2,(ymax+ymin)/2,ymax);
 			NE = new WhiteNode(((xmax+xmin)/2),xmax,((ymax+ymin)/2),ymax);
 			SW = new WhiteNode(xmin,(xmax+xmin)/2,ymin,(ymax+ymin)/2);
 			SE = new WhiteNode((xmax+xmin)/2,xmax,ymin,(ymax+ymin)/2);
 		}
 		
-		private Node add(Geometry g, Node root) {
+		private Node add(Geometry g) {
 			if (g.isCity()) {
 				City c = (City) g;
 				int x = (int) c.getPt().getX();
 				int y = (int) c.getPt().getY();
-				if (x > ((root.getXmax()-root.getXmin())/2) + root.getXmin()) {
-					if (y > ((root.getYmax()-root.getYmin())/2) + root.getYmin()) {
-						((GreyNode) root).NE = insertHelp(g, ((GreyNode) root).NE);
-					} else if (y == ((root.getYmax()-root.getYmin())/2) + root.getYmin()) {
-						((GreyNode) root).NE = insertHelp(g, ((GreyNode) root).NE);
-						((GreyNode) root).SE = insertHelp(g, ((GreyNode) root).SE);
+				if (x > ((getXmax()-getXmin())/2) + getXmin()) {
+					if (y > ((getYmax()-getYmin())/2) + getYmin()) {
+						NE = insertHelp(g, NE);
+					} else if (y == ((getYmax()-getYmin())/2) + getYmin()) {
+						NE = insertHelp(g, NE);
+						SE = insertHelp(g, SE);
 					} else {
-						((GreyNode) root).SE = insertHelp(g, ((GreyNode) root).SE);
+						SE = insertHelp(g, SE);
 					}
-				} else if (x == ((root.getXmax()-root.getXmin())/2) + root.getXmin()) { 
-					if (y > ((root.getYmax()-root.getYmin())/2) + root.getYmin()) {
-						((GreyNode) root).NE = insertHelp(g, ((GreyNode) root).NE);
-						((GreyNode) root).NW = insertHelp(g, ((GreyNode) root).NE);
-					} else if (y == ((root.getYmax()-root.getYmin())/2) + root.getYmin()) {
-						((GreyNode) root).NE = insertHelp(g, ((GreyNode) root).NE);
-						((GreyNode) root).NW = insertHelp(g, ((GreyNode) root).NE);
-						((GreyNode) root).SE = insertHelp(g, ((GreyNode) root).SE);
-						((GreyNode) root).SW = insertHelp(g, ((GreyNode) root).SE);
+				} else if (x == ((getXmax()-getXmin())/2) + getXmin()) { 
+					if (y > ((getYmax()-getYmin())/2) + getYmin()) {
+						NE = insertHelp(g, NE);
+						NW = insertHelp(g, NW);
+					} else if (y == ((getYmax()-getYmin())/2) + getYmin()) {
+						NE = insertHelp(g, NE);
+						NW = insertHelp(g, NW);
+						SE = insertHelp(g, SE);
+						SW = insertHelp(g, SW);
 					} else {
-						((GreyNode) root).SE = insertHelp(g, ((GreyNode) root).SE);
-						((GreyNode) root).SW = insertHelp(g, ((GreyNode) root).SE);
+						SE = insertHelp(g, SE);
+						SW = insertHelp(g, SW);
 					}
 				} else {
-					if (y > ((root.getYmax()-root.getYmin())/2) + root.getYmin()) {
-						((GreyNode) root).NW = insertHelp(g, ((GreyNode) root).NW);
-					} else if (y == ((root.getYmax()-root.getYmin())/2) + root.getYmin()) {
-						((GreyNode) root).NW = insertHelp(g, ((GreyNode) root).NW);
-						((GreyNode) root).SW = insertHelp(g, ((GreyNode) root).SW);
+					if (y > ((getYmax()-getYmin())/2) + getYmin()) {
+						NW = insertHelp(g, NW);
+					} else if (y == ((getYmax()-getYmin())/2) + getYmin()) {
+						NW = insertHelp(g, NW);
+						SW = insertHelp(g, SW);
 					} else {
-						((GreyNode) root).SW = insertHelp(g, ((GreyNode) root).SW);
+						SW = insertHelp(g, SW);
 					}
 				}
 			} else {
 				Road r = (Road) g;
-				
+				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), NW.getRegion())) {
+					NW = insertHelp(r, NW);
+				}
+				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), NE.getRegion())) {
+					NE = insertHelp(r, NE);
+				}
+				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), SW.getRegion())) {
+					SW = insertHelp(r, SW);
+				}
+				if(Inclusive2DIntersectionVerifier.intersects(r.getLine(), SE.getRegion())) {
+					SE = insertHelp(r, SE);
+				}
 			}
 			
-			return root;
-		}
-		
-		private Node add(ArrayList<Geometry> g, Node root) {
-			
+			return this;
 		}
 		
 		private Node remove(Geometry g, Node root) {
@@ -160,6 +167,7 @@ public class PMQuadtree {
 			super.setXmax(xmax);
 			super.setYmin(ymin);
 			super.setYmax(ymax);
+			super.setRegion(xmin, ymax, (xmax-xmin), (ymax-ymin));
 		}
 		
 		private Node add(Geometry g) {

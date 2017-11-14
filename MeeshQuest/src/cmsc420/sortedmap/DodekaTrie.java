@@ -11,7 +11,7 @@ import java.util.SortedMap;
 
 import javax.activation.UnsupportedDataTypeException;
 
-import cmsc420.meeshquest.part1.Pair;
+import cmsc420.meeshquest.part2.Pair;
 
 @SuppressWarnings("unchecked")
 public class DodekaTrie<K, V> implements SortedMap<K, V> {

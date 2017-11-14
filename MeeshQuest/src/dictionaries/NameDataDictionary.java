@@ -3,8 +3,8 @@ package dictionaries;
 import java.util.Set;
 import java.util.TreeMap;
 
-import cmsc420.meeshquest.part1.City;
-import cmsc420.meeshquest.part1.comparators.CityNameComparator;
+import cmsc420.meeshquest.part2.City;
+import cmsc420.meeshquest.part2.comparators.CityNameComparator;
 
 public class NameDataDictionary {
 

@@ -1,4 +1,4 @@
-package cmsc420.meeshquest.part1;
+package cmsc420.meeshquest.part2;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -11,8 +11,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import cmsc420.drawing.CanvasPlus;
-import cmsc420.meeshquest.part1.comparators.CityCoordComparator;
-import cmsc420.meeshquest.part1.comparators.CityNameComparator;
+import cmsc420.meeshquest.part2.comparators.CityCoordComparator;
+import cmsc420.meeshquest.part2.comparators.CityNameComparator;
 import dictionaries.CoordDataDictionary;
 import dictionaries.NameDataDictionary;
 import spatialMaps.Node;
