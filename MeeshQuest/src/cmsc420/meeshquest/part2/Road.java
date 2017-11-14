@@ -28,12 +28,26 @@ public class Road extends Geometry {
 		return start.getPt();
 	}
 	
-	public Point2D getEndCoord() {
+	public Point2D.Float getEndCoord() {
 		return end.getPt();
 	}
 	
 	public Line2D.Float getLine() {
 		return line;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) {
+			return true;
+		}
+		
+		if (!(o instanceof Road)) {
+			return false;
+		}
+		
+		Road r = (Road) o;
+		return r.start.equals(start) && r.end.equals(end);
 	}
 	
 	@Override

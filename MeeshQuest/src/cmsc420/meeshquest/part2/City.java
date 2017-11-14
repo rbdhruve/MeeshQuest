@@ -1,16 +1,15 @@
 package cmsc420.meeshquest.part2;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 
 public class City extends Geometry {
 
 	private String color;
 	private int x, y, radius;
-	private Point2D pt;
+	private Point2D.Float pt;
 	
 	public City(int x, int y, int radius, String color) {
-		pt = new Point(x, y);
+		pt = new Point2D.Float(x, y);
 		this.x = x;
 		this.y = y;
 		this.radius = radius;
@@ -33,7 +32,7 @@ public class City extends Geometry {
 		return radius;
 	}
 	
-	public Point2D getPt() {
+	public Point2D.Float getPt() {
 		return pt;
 	}
 	

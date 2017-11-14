@@ -33,6 +33,31 @@ public class PMQuadtree {
 			return false;
 		}
 		
+		private boolean containsCity(City c) {
+			for(Geometry g : items) {
+				if (g.getType() == Geometry.POINT)
+					return ((City) g).equals(c);
+			}
+			return false;
+		}
+		
+		private boolean containsRoad(Road r) {
+			for(Geometry g : items) {
+				if (g.getType() == Geometry.SEGMENT && ((Road) g).equals(r)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		private boolean containsGeom(Geometry g) {
+			if (g.getType() == Geometry.POINT) {
+				return containsCity((City) g);
+			} else {
+				return containsRoad((Road) g);
+			}
+		}
+		
 		private Node add(Geometry g) {
 			if (g.getType() == Geometry.POINT && containsCity()) {
 				return partition(g);
@@ -108,6 +133,39 @@ public class PMQuadtree {
 		private Node remove(Geometry g, Node root) {
 			throw new UnsupportedOperationException("Not yet implemented");
 		}
+		
+		private BlackNode containsGeom(Point2D pt) {
+			if (Inclusive2DIntersectionVerifier.intersects(pt, NW.getRegion())) {
+				if (NW.getClass().equals(BlackNode.class)) {
+					return (BlackNode) NW;
+				} else if (NW.getClass().equals(GreyNode.class)) {
+					return ((GreyNode) NW).containsGeom(pt);
+				}
+			}
+			if (Inclusive2DIntersectionVerifier.intersects(pt, NE.getRegion())) {
+				if (NE.getClass().equals(BlackNode.class)) {
+					return (BlackNode) NE;
+				} else if (NE.getClass().equals(GreyNode.class)) {
+					return ((GreyNode) NE).containsGeom(pt);
+				}
+			}
+			if (Inclusive2DIntersectionVerifier.intersects(pt, SW.getRegion())) {
+				if (SW.getClass().equals(BlackNode.class)) {
+					return (BlackNode) SW;
+				} else if (SW.getClass().equals(GreyNode.class)) {
+					return ((GreyNode) SW).containsGeom(pt);
+				}
+			}
+			if (Inclusive2DIntersectionVerifier.intersects(pt, SE.getRegion())) {
+				if (SE.getClass().equals(BlackNode.class)) {
+					return (BlackNode) SE;
+				} else if (SE.getClass().equals(GreyNode.class)) {
+					return ((GreyNode) SE).containsGeom(pt);
+				}
+			}
+			
+			return null;
+		}
 
 		public boolean required() {
 			int i = 0;
@@ -167,11 +225,69 @@ public class PMQuadtree {
 	
 	private Node insertHelp(Geometry elem, Node root) {
 		if (root.getClass().equals(BlackNode.class)) {
-			return ((BlackNode) root).add(elem, root);
+			return ((BlackNode) root).add(elem);
 		} else if (root.getClass().equals(GreyNode.class)) {
-			return ((GreyNode) root).add(elem, root);
+			return ((GreyNode) root).add(elem);
 		} else {
 			return ((WhiteNode)root).add(elem);
 		}
+	}
+	
+	public boolean containsGeom(Geometry g) {
+		if (root.getClass().equals(BlackNode.class)) {
+			return ((BlackNode) root).containsGeom(g);
+		} else if (root.getClass().equals(GreyNode.class)) {
+			Point2D.Float coord;
+			if (g.getType() == Geometry.POINT) {
+				coord = ((City) g).getPt();
+			} else {
+				coord = ((Road) g).getStart().getPt();
+			}
+			
+			BlackNode b = ((GreyNode) root).containsGeom(coord);
+			return b.containsGeom(g);
+			
+		} else {
+			return false;
+		}
+	}
+	
+	public void clearAll() {
+		int spatialWidth = root.getXmax();
+		int spatialHeight = root.getYmax();
+		root = new WhiteNode(0, spatialWidth, 0, spatialHeight);
+	}
+	
+	public boolean isEmpty() {
+		return root.getClass().equals(WhiteNode.class);
+	}
+	
+	public ArrayList<Node> breadthFirst() {
+		return breadthFirstHelp(root, new ArrayList<Node>());
+	}
+	
+	private ArrayList<Node> breadthFirstHelp(Node root, ArrayList<Node> arr) {
+		if (root.getClass().equals(BlackNode.class) || root.getClass().equals(WhiteNode.class)) {
+			arr.add(root);
+		} else if (root.getClass().equals(GreyNode.class)) {
+			arr.add(root);
+			breadthFirstHelp(((GreyNode) root).NW, arr);
+			breadthFirstHelp(((GreyNode) root).NE, arr);
+			breadthFirstHelp(((GreyNode) root).SW, arr);
+			breadthFirstHelp(((GreyNode) root).SE, arr);
+			//End of Grey Node
+			arr.add(null);
+		}
+		
+		return arr;
+	}
+	
+	public int getWidth() {
+		return width;
+	}
+
+
+	public int getHeight() {
+		return height;
 	}
 }
