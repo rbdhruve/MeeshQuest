@@ -18,6 +18,7 @@ import cmsc420.xml.XmlUtility;
 import dictionaries.CoordDataDictionary;
 import dictionaries.NameDataDictionary;
 import spatialMaps.Node;
+import spatialMaps.PMQuadtree;
 import spatialMaps.PRQuadTree;
 
 public class MeeshQuest {
@@ -28,7 +29,7 @@ public class MeeshQuest {
     	CommandParser parser = new CommandParser();
     	NameDataDictionary ndd = new NameDataDictionary();
     	CoordDataDictionary cdd = new CoordDataDictionary();
-    	PRQuadTree<City> tree;
+    	PMQuadtree tree;
     	
         try {
         	Document doc = XmlUtility.validateNoNamespace(System.in);
@@ -39,7 +40,7 @@ public class MeeshQuest {
         	Element commandNode = doc.getDocumentElement();
         	int spatialWidth = Integer.parseInt(commandNode.getAttribute("spatialWidth")); 
         	int spatialHeight = Integer.parseInt(commandNode.getAttribute("spatialHeight"));
-        	tree = new PRQuadTree<City>(spatialWidth, spatialHeight);
+        	tree = new PMQuadtree(spatialWidth, spatialHeight);
 
         	final NodeList nl = commandNode.getChildNodes();
         	for (int i = 0; i < nl.getLength(); i++) {
@@ -58,6 +59,10 @@ public class MeeshQuest {
         						
         						Element command = results.createElement("command");
         						command.setAttribute("name", "createCity");
+        						String id = commandNode.getAttribute("id");
+        						if (!id.isEmpty()) {
+        							command.setAttribute("id", id);
+        						}
         						
         						Element parameters = results.createElement("parameters");
         						
@@ -92,6 +97,10 @@ public class MeeshQuest {
         						
         						Element command = results.createElement("command");
         						command.setAttribute("name", "createCity");
+        						String id = commandNode.getAttribute("id");
+        						if (!id.isEmpty()) {
+        							command.setAttribute("id", id);
+        						}
         						
         						Element parameters = results.createElement("parameters");
         						
@@ -125,6 +134,10 @@ public class MeeshQuest {
     						
     						Element command = results.createElement("command");
     						command.setAttribute("name", "createCity");
+    						String id = commandNode.getAttribute("id");
+    						if (!id.isEmpty()) {
+    							command.setAttribute("id", id);
+    						}
     						
     						Element parameters = results.createElement("parameters");
     						
@@ -152,61 +165,61 @@ public class MeeshQuest {
         					
         				}
         				
-        			} else if (commandNode.getNodeName().equals("deleteCity")) {
-        				String name = commandNode.getAttribute("name");
-        				
-        				if (ndd.containsName(name)) {
-        					City city = ndd.getCity(name);
-        					
-        					Element success = results.createElement("success");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "deleteCity");
-    						
-    						Element parameters = results.createElement("parameters");
-    						
-    						Element paramName = results.createElement("name");
-    						paramName.setAttribute("value", name);
-    						
-    						Element output = results.createElement("output");
-    						if (tree.containsElem(city)) {
-        						tree.delete(city);
-        						Element unmapped = results.createElement("cityUnmapped");
-        						unmapped.setAttribute("name", cdd.getName(city));
-        						unmapped.setAttribute("x", ((Integer) city.getXCoord()).toString());
-        						unmapped.setAttribute("y", ((Integer) city.getYCoord()).toString());
-        						unmapped.setAttribute("color", city.getColor());
-        						unmapped.setAttribute("radius", ((Integer) city.getRadius()).toString());
-        						output.appendChild(unmapped);
-        					}
-        					ndd.remove(name);
-        					cdd.remove(city);
-    						
-    						parameters.appendChild(paramName);
-
-    						success.appendChild(command);
-    						success.appendChild(parameters);
-    						success.appendChild(output);
-    						
-    						r.appendChild(success);
-        				} else {
-        					Element error = results.createElement("error");
-    						error.setAttribute("type", "cityDoesNotExist");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "deleteCity");
-    						
-    						Element parameters = results.createElement("parameters");
-    						
-    						Element paramName = results.createElement("name");
-    						paramName.setAttribute("value", name);
-    						
-    						parameters.appendChild(paramName);
-    						error.appendChild(command);
-    						error.appendChild(parameters);
-    						
-    						r.appendChild(error);
-        				}
+//        			} else if (commandNode.getNodeName().equals("deleteCity")) {
+//        				String name = commandNode.getAttribute("name");
+//        				
+//        				if (ndd.containsName(name)) {
+//        					City city = ndd.getCity(name);
+//        					
+//        					Element success = results.createElement("success");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "deleteCity");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						
+//    						Element paramName = results.createElement("name");
+//    						paramName.setAttribute("value", name);
+//    						
+//    						Element output = results.createElement("output");
+//    						if (tree.containsElem(city)) {
+//        						tree.delete(city);
+//        						Element unmapped = results.createElement("cityUnmapped");
+//        						unmapped.setAttribute("name", cdd.getName(city));
+//        						unmapped.setAttribute("x", ((Integer) city.getXCoord()).toString());
+//        						unmapped.setAttribute("y", ((Integer) city.getYCoord()).toString());
+//        						unmapped.setAttribute("color", city.getColor());
+//        						unmapped.setAttribute("radius", ((Integer) city.getRadius()).toString());
+//        						output.appendChild(unmapped);
+//        					}
+//        					ndd.remove(name);
+//        					cdd.remove(city);
+//    						
+//    						parameters.appendChild(paramName);
+//
+//    						success.appendChild(command);
+//    						success.appendChild(parameters);
+//    						success.appendChild(output);
+//    						
+//    						r.appendChild(success);
+//        				} else {
+//        					Element error = results.createElement("error");
+//    						error.setAttribute("type", "cityDoesNotExist");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "deleteCity");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						
+//    						Element paramName = results.createElement("name");
+//    						paramName.setAttribute("value", name);
+//    						
+//    						parameters.appendChild(paramName);
+//    						error.appendChild(command);
+//    						error.appendChild(parameters);
+//    						
+//    						r.appendChild(error);
+//        				}
         				
         			} else if (commandNode.getNodeName().equals("listCities")) {
         				Element cities = parser.listCities(commandNode, ndd, cdd, results);
@@ -219,6 +232,10 @@ public class MeeshQuest {
         				Element success = results.createElement("success");
         				Element command = results.createElement("command");
         				command.setAttribute("name", "clearAll");
+        				String id = commandNode.getAttribute("id");
+						if (!id.isEmpty()) {
+							command.setAttribute("id", id);
+						}
         				Element parameters = results.createElement("parameters");
         				Element output = results.createElement("output");
         				
@@ -227,6 +244,8 @@ public class MeeshQuest {
         				success.appendChild(output);
         				
         				r.appendChild(success);
+        			} else if (commandNode.getLocalName().equals("mapRoad")) {
+        				
         			} else if (commandNode.getNodeName().equals("mapCity")) {
         				String name = commandNode.getAttribute("name");
         				if (ndd.containsName(name)) {
@@ -234,13 +253,17 @@ public class MeeshQuest {
         					int x = city.getXCoord();
         					int y = city.getYCoord();
         					if (x < spatialWidth && y < spatialHeight) {
-        						if(!tree.containsElem(city)) {
+        						if(!tree.containsGeom(city)) {
         							tree.insert(city);
         							        							
         							Element success = results.createElement("success");
             						
             						Element command = results.createElement("command");
             						command.setAttribute("name", "mapCity");
+            						String id = commandNode.getAttribute("id");
+            						if (!id.isEmpty()) {
+            							command.setAttribute("id", id);
+            						}
             						
             						Element parameters = results.createElement("parameters");
             						
@@ -261,6 +284,10 @@ public class MeeshQuest {
             						
             						Element command = results.createElement("command");
             						command.setAttribute("name", "mapCity");
+            						String id = commandNode.getAttribute("id");
+            						if (!id.isEmpty()) {
+            							command.setAttribute("id", id);
+            						}
             						
             						Element parameters = results.createElement("parameters");
             						
@@ -279,6 +306,10 @@ public class MeeshQuest {
         						
         						Element command = results.createElement("command");
         						command.setAttribute("name", "mapCity");
+        						String id = commandNode.getAttribute("id");
+        						if (!id.isEmpty()) {
+        							command.setAttribute("id", id);
+        						}
         						
         						Element parameters = results.createElement("parameters");
         						
@@ -297,69 +328,10 @@ public class MeeshQuest {
     						
     						Element command = results.createElement("command");
     						command.setAttribute("name", "mapCity");
-    						
-    						Element parameters = results.createElement("parameters");
-    						
-    						Element paramName = results.createElement("name");
-    						paramName.setAttribute("value", name);
-    						
-    						parameters.appendChild(paramName);
-    						error.appendChild(command);
-    						error.appendChild(parameters);
-    						
-    						r.appendChild(error);
-        				}
-        			} else if (commandNode.getNodeName().equals("unmapCity")) {
-        				String name = commandNode.getAttribute("name");
-        				
-        				if (ndd.containsName(name)) {
-        					City city = ndd.getCity(name);
-    						if(tree.containsElem(city)) {
-    							tree.delete(city);
-    							        							
-    							Element success = results.createElement("success");
-        						
-        						Element command = results.createElement("command");
-        						command.setAttribute("name", "unmapCity");
-        						
-        						Element parameters = results.createElement("parameters");
-        						
-        						Element paramName = results.createElement("name");
-        						paramName.setAttribute("value", name);
-        						
-        						Element output = results.createElement("output");
-        						
-        						parameters.appendChild(paramName);
-
-        						success.appendChild(command);
-        						success.appendChild(parameters);
-        						success.appendChild(output);
-        						
-        						r.appendChild(success);
-    						} else {
-    							Element error = results.createElement("error");
-        						error.setAttribute("type", "cityNotMapped");
-        						
-        						Element command = results.createElement("command");
-        						command.setAttribute("name", "unmapCity");
-        						
-        						Element parameters = results.createElement("parameters");
-        						
-        						Element paramName = results.createElement("name");
-        						paramName.setAttribute("value", name);
-        						
-        						parameters.appendChild(paramName);
-        						error.appendChild(command);
-        						error.appendChild(parameters);
-        						
-        						r.appendChild(error);
+    						String id = commandNode.getAttribute("id");
+    						if (!id.isEmpty()) {
+    							command.setAttribute("id", id);
     						}
-        				} else {
-        					Element error = results.createElement("error");
-    						error.setAttribute("type", "nameNotInDictionary");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "unmapCity");
     						
     						Element parameters = results.createElement("parameters");
     						
@@ -372,13 +344,80 @@ public class MeeshQuest {
     						
     						r.appendChild(error);
         				}
-        			} else if (commandNode.getNodeName().equals("printPRQuadtree")) {
+//        			} else if (commandNode.getNodeName().equals("unmapCity")) {
+//        				String name = commandNode.getAttribute("name");
+//        				
+//        				if (ndd.containsName(name)) {
+//        					City city = ndd.getCity(name);
+//    						if(tree.containsElem(city)) {
+//    							tree.delete(city);
+//    							        							
+//    							Element success = results.createElement("success");
+//        						
+//        						Element command = results.createElement("command");
+//        						command.setAttribute("name", "unmapCity");
+//        						
+//        						Element parameters = results.createElement("parameters");
+//        						
+//        						Element paramName = results.createElement("name");
+//        						paramName.setAttribute("value", name);
+//        						
+//        						Element output = results.createElement("output");
+//        						
+//        						parameters.appendChild(paramName);
+//
+//        						success.appendChild(command);
+//        						success.appendChild(parameters);
+//        						success.appendChild(output);
+//        						
+//        						r.appendChild(success);
+//    						} else {
+//    							Element error = results.createElement("error");
+//        						error.setAttribute("type", "cityNotMapped");
+//        						
+//        						Element command = results.createElement("command");
+//        						command.setAttribute("name", "unmapCity");
+//        						
+//        						Element parameters = results.createElement("parameters");
+//        						
+//        						Element paramName = results.createElement("name");
+//        						paramName.setAttribute("value", name);
+//        						
+//        						parameters.appendChild(paramName);
+//        						error.appendChild(command);
+//        						error.appendChild(parameters);
+//        						
+//        						r.appendChild(error);
+//    						}
+//        				} else {
+//        					Element error = results.createElement("error");
+//    						error.setAttribute("type", "nameNotInDictionary");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "unmapCity");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						
+//    						Element paramName = results.createElement("name");
+//    						paramName.setAttribute("value", name);
+//    						
+//    						parameters.appendChild(paramName);
+//    						error.appendChild(command);
+//    						error.appendChild(parameters);
+//    						
+//    						r.appendChild(error);
+//        				}
+        			} else if (commandNode.getNodeName().equals("printPMQuadtree")) {
         				if (!tree.isEmpty()) {
         					ArrayList<Node> search = tree.breadthFirst();
         					Element success = results.createElement("success");
     						
     						Element command = results.createElement("command");
-    						command.setAttribute("name", "printPRQuadtree");
+    						command.setAttribute("name", "printPRMuadtree");
+    						String id = commandNode.getAttribute("id");
+    						if (!id.isEmpty()) {
+    							command.setAttribute("id", id);
+    						}
     						
     						Element parameters = results.createElement("parameters");
     						
@@ -397,7 +436,11 @@ public class MeeshQuest {
     						error.setAttribute("type", "mapIsEmpty");
     						
     						Element command = results.createElement("command");
-    						command.setAttribute("name", "printPRQuadtree");
+    						command.setAttribute("name", "printPMQuadtree");
+    						String id = commandNode.getAttribute("id");
+    						if (!id.isEmpty()) {
+    							command.setAttribute("id", id);
+    						}
     						
     						Element parameters = results.createElement("parameters");
     						
@@ -407,164 +450,164 @@ public class MeeshQuest {
     						r.appendChild(error);
         				}
         				
-        			} else if (commandNode.getNodeName().equals("saveMap")) {
-        				CanvasPlus canvas = parser.saveMap(spatialWidth, spatialHeight, tree.breadthFirst(), cdd);
-        				canvas.save(commandNode.getAttribute("name"));
-        				canvas.draw();
-        				
-        				Element success = results.createElement("success");
-						
-						Element command = results.createElement("command");
-						command.setAttribute("name", "saveMap");
-						
-						Element parameters = results.createElement("parameters");
-						Element paramName = results.createElement("name");
-						paramName.setAttribute("value", commandNode.getAttribute("name"));
-						parameters.appendChild(paramName);
-						
-						Element output = results.createElement("output");
-
-						success.appendChild(command);
-						success.appendChild(parameters);
-						success.appendChild(output);
-						
-						r.appendChild(success);
-        				
-        			} else if (commandNode.getNodeName().equals("rangeCities")) {
-        				int x = Integer.parseInt(commandNode.getAttribute("x"));
-        				int y = Integer.parseInt(commandNode.getAttribute("y"));
-        				int radius = Integer.parseInt(commandNode.getAttribute("radius"));
-        				String save = commandNode.getAttribute("saveMap");
-        				ArrayList<City> citiesInRange = parser.range(new ArrayList<City>(), cdd.getCities(), x, y, radius, tree);
-        				
-        				if (!citiesInRange.isEmpty()) {
-        					Element success = results.createElement("success");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "rangeCities");
-    						
-    						Element parameters = results.createElement("parameters");
-    						Element paramX = results.createElement("x");
-    						Element paramY = results.createElement("y");
-    						Element paramRad = results.createElement("radius");
-    						paramX.setAttribute("value", ((Integer) x).toString());
-    						parameters.appendChild(paramX);
-    						paramY.setAttribute("value", ((Integer) y).toString());
-    						parameters.appendChild(paramY);
-    						paramRad.setAttribute("value", ((Integer) radius).toString());
-    						parameters.appendChild(paramRad);
-    						if (!save.isEmpty()) {
-    							Element paramSave = results.createElement("saveMap");
-    							paramSave.setAttribute("value", commandNode.getAttribute("saveMap"));
-        						parameters.appendChild(paramSave);
-        						
-        						CanvasPlus canvas = parser.saveMap(spatialWidth, spatialHeight, tree.breadthFirst(), cdd);
-        						canvas.addCircle(x, y, radius, Color.BLUE, false);
-        						canvas.save(save);
-        						canvas.draw();
-    						}
-    						
-    						Element output = results.createElement("output");
-    						Element cityList = results.createElement("cityList");
-    						for (City c : citiesInRange) {
-    							Element city =  results.createElement("city");
-    							city.setAttribute("name", cdd.getName(c));
-    							city.setAttribute("x", ((Integer) c.getXCoord()).toString());
-    							city.setAttribute("y", ((Integer) c.getYCoord()).toString());
-    							city.setAttribute("color", c.getColor());
-    							city.setAttribute("radius", ((Integer) c.getRadius()).toString());
-    							cityList.appendChild(city);
-    						}
-    						output.appendChild(cityList);
-
-    						success.appendChild(command);
-    						success.appendChild(parameters);
-    						success.appendChild(output);
-    						
-    						r.appendChild(success);
-        				} else {
-        					Element error = results.createElement("error");
-    						error.setAttribute("type", "noCitiesExistInRange");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "rangeCities");
-    						
-    						Element parameters = results.createElement("parameters");
-    						Element paramX = results.createElement("x");
-    						Element paramY = results.createElement("y");
-    						Element paramRad = results.createElement("radius");
-    						paramX.setAttribute("value", ((Integer) x).toString());
-    						parameters.appendChild(paramX);
-    						paramY.setAttribute("value", ((Integer) y).toString());
-    						parameters.appendChild(paramY);
-    						paramRad.setAttribute("value", ((Integer) radius).toString());
-    						parameters.appendChild(paramRad);
-    						if (!save.isEmpty()) {
-    							Element paramSave = results.createElement("saveMap");
-    							paramSave.setAttribute("value", commandNode.getAttribute("saveMap"));
-        						parameters.appendChild(paramSave);
-    						}
-    						
-    						error.appendChild(command);
-    						error.appendChild(parameters);
-    						
-    						r.appendChild(error);
-        				}
-        				
-        			} else if (commandNode.getNodeName().equals("nearestCity")) {
-    					int x = Integer.parseInt(commandNode.getAttribute("x"));
-    					int y = Integer.parseInt(commandNode.getAttribute("y"));
-    					
-        				if (!tree.isEmpty() && cdd.size() > 0) {
-        					City closest = parser.nearest(cdd.getCities(), x, y, tree, cdd);
-        					
-        					Element success = results.createElement("success");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "nearestCity");
-    						
-    						Element parameters = results.createElement("parameters");
-    						Element paramX = results.createElement("x");
-    						Element paramY = results.createElement("y");
-    						paramX.setAttribute("value", ((Integer) x).toString());
-    						parameters.appendChild(paramX);
-    						paramY.setAttribute("value", ((Integer) y).toString());
-    						parameters.appendChild(paramY);
-    						
-    						Element output = results.createElement("output");
-    						Element city = results.createElement("city");
-    						city.setAttribute("name", cdd.getName(closest));
-    						city.setAttribute("x", ((Integer) closest.getXCoord()).toString());
-    						city.setAttribute("y", ((Integer) closest.getYCoord()).toString());
-    						city.setAttribute("color", closest.getColor());
-    						city.setAttribute("radius", ((Integer) closest.getRadius()).toString());
-    						output.appendChild(city);
-
-    						success.appendChild(command);
-    						success.appendChild(parameters);
-    						success.appendChild(output);
-    						
-    						r.appendChild(success);
-        				} else {
-        					Element error = results.createElement("error");
-    						error.setAttribute("type", "mapIsEmpty");
-    						
-    						Element command = results.createElement("command");
-    						command.setAttribute("name", "nearestCity");
-    						
-    						Element parameters = results.createElement("parameters");
-    						Element paramX = results.createElement("x");
-    						Element paramY = results.createElement("y");
-    						paramX.setAttribute("value", ((Integer) x).toString());
-    						parameters.appendChild(paramX);
-    						paramY.setAttribute("value", ((Integer) y).toString());
-    						parameters.appendChild(paramY);
-    						
-    						error.appendChild(command);
-    						error.appendChild(parameters);
-    						
-    						r.appendChild(error);
-        				}
+//        			} else if (commandNode.getNodeName().equals("saveMap")) {
+//        				CanvasPlus canvas = parser.saveMap(spatialWidth, spatialHeight, tree.breadthFirst(), cdd);
+//        				canvas.save(commandNode.getAttribute("name"));
+//        				canvas.draw();
+//        				
+//        				Element success = results.createElement("success");
+//						
+//						Element command = results.createElement("command");
+//						command.setAttribute("name", "saveMap");
+//						
+//						Element parameters = results.createElement("parameters");
+//						Element paramName = results.createElement("name");
+//						paramName.setAttribute("value", commandNode.getAttribute("name"));
+//						parameters.appendChild(paramName);
+//						
+//						Element output = results.createElement("output");
+//
+//						success.appendChild(command);
+//						success.appendChild(parameters);
+//						success.appendChild(output);
+//						
+//						r.appendChild(success);
+//        				
+//        			} else if (commandNode.getNodeName().equals("rangeCities")) {
+//        				int x = Integer.parseInt(commandNode.getAttribute("x"));
+//        				int y = Integer.parseInt(commandNode.getAttribute("y"));
+//        				int radius = Integer.parseInt(commandNode.getAttribute("radius"));
+//        				String save = commandNode.getAttribute("saveMap");
+//        				ArrayList<City> citiesInRange = parser.range(new ArrayList<City>(), cdd.getCities(), x, y, radius, tree);
+//        				
+//        				if (!citiesInRange.isEmpty()) {
+//        					Element success = results.createElement("success");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "rangeCities");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						Element paramX = results.createElement("x");
+//    						Element paramY = results.createElement("y");
+//    						Element paramRad = results.createElement("radius");
+//    						paramX.setAttribute("value", ((Integer) x).toString());
+//    						parameters.appendChild(paramX);
+//    						paramY.setAttribute("value", ((Integer) y).toString());
+//    						parameters.appendChild(paramY);
+//    						paramRad.setAttribute("value", ((Integer) radius).toString());
+//    						parameters.appendChild(paramRad);
+//    						if (!save.isEmpty()) {
+//    							Element paramSave = results.createElement("saveMap");
+//    							paramSave.setAttribute("value", commandNode.getAttribute("saveMap"));
+//        						parameters.appendChild(paramSave);
+//        						
+//        						CanvasPlus canvas = parser.saveMap(spatialWidth, spatialHeight, tree.breadthFirst(), cdd);
+//        						canvas.addCircle(x, y, radius, Color.BLUE, false);
+//        						canvas.save(save);
+//        						canvas.draw();
+//    						}
+//    						
+//    						Element output = results.createElement("output");
+//    						Element cityList = results.createElement("cityList");
+//    						for (City c : citiesInRange) {
+//    							Element city =  results.createElement("city");
+//    							city.setAttribute("name", cdd.getName(c));
+//    							city.setAttribute("x", ((Integer) c.getXCoord()).toString());
+//    							city.setAttribute("y", ((Integer) c.getYCoord()).toString());
+//    							city.setAttribute("color", c.getColor());
+//    							city.setAttribute("radius", ((Integer) c.getRadius()).toString());
+//    							cityList.appendChild(city);
+//    						}
+//    						output.appendChild(cityList);
+//
+//    						success.appendChild(command);
+//    						success.appendChild(parameters);
+//    						success.appendChild(output);
+//    						
+//    						r.appendChild(success);
+//        				} else {
+//        					Element error = results.createElement("error");
+//    						error.setAttribute("type", "noCitiesExistInRange");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "rangeCities");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						Element paramX = results.createElement("x");
+//    						Element paramY = results.createElement("y");
+//    						Element paramRad = results.createElement("radius");
+//    						paramX.setAttribute("value", ((Integer) x).toString());
+//    						parameters.appendChild(paramX);
+//    						paramY.setAttribute("value", ((Integer) y).toString());
+//    						parameters.appendChild(paramY);
+//    						paramRad.setAttribute("value", ((Integer) radius).toString());
+//    						parameters.appendChild(paramRad);
+//    						if (!save.isEmpty()) {
+//    							Element paramSave = results.createElement("saveMap");
+//    							paramSave.setAttribute("value", commandNode.getAttribute("saveMap"));
+//        						parameters.appendChild(paramSave);
+//    						}
+//    						
+//    						error.appendChild(command);
+//    						error.appendChild(parameters);
+//    						
+//    						r.appendChild(error);
+//        				}
+//        				
+//        			} else if (commandNode.getNodeName().equals("nearestCity")) {
+//    					int x = Integer.parseInt(commandNode.getAttribute("x"));
+//    					int y = Integer.parseInt(commandNode.getAttribute("y"));
+//    					
+//        				if (!tree.isEmpty() && cdd.size() > 0) {
+//        					City closest = parser.nearest(cdd.getCities(), x, y, tree, cdd);
+//        					
+//        					Element success = results.createElement("success");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "nearestCity");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						Element paramX = results.createElement("x");
+//    						Element paramY = results.createElement("y");
+//    						paramX.setAttribute("value", ((Integer) x).toString());
+//    						parameters.appendChild(paramX);
+//    						paramY.setAttribute("value", ((Integer) y).toString());
+//    						parameters.appendChild(paramY);
+//    						
+//    						Element output = results.createElement("output");
+//    						Element city = results.createElement("city");
+//    						city.setAttribute("name", cdd.getName(closest));
+//    						city.setAttribute("x", ((Integer) closest.getXCoord()).toString());
+//    						city.setAttribute("y", ((Integer) closest.getYCoord()).toString());
+//    						city.setAttribute("color", closest.getColor());
+//    						city.setAttribute("radius", ((Integer) closest.getRadius()).toString());
+//    						output.appendChild(city);
+//
+//    						success.appendChild(command);
+//    						success.appendChild(parameters);
+//    						success.appendChild(output);
+//    						
+//    						r.appendChild(success);
+//        				} else {
+//        					Element error = results.createElement("error");
+//    						error.setAttribute("type", "mapIsEmpty");
+//    						
+//    						Element command = results.createElement("command");
+//    						command.setAttribute("name", "nearestCity");
+//    						
+//    						Element parameters = results.createElement("parameters");
+//    						Element paramX = results.createElement("x");
+//    						Element paramY = results.createElement("y");
+//    						paramX.setAttribute("value", ((Integer) x).toString());
+//    						parameters.appendChild(paramX);
+//    						paramY.setAttribute("value", ((Integer) y).toString());
+//    						parameters.appendChild(paramY);
+//    						
+//    						error.appendChild(command);
+//    						error.appendChild(parameters);
+//    						
+//    						r.appendChild(error);
+//        				}
         			}
         		}
         	}

@@ -62,7 +62,11 @@ public class PMQuadtree {
 			if (g.getType() == Geometry.POINT && containsCity()) {
 				return partition(g);
 			} else {
-				items.add(g);
+				if (g.getType() == Geometry.POINT) {
+					items.add(0, g);
+				} else {
+					items.add(g);
+				}
 				return this;
 			}
 		}
@@ -78,6 +82,10 @@ public class PMQuadtree {
 		
 		private Node remove(Geometry g, Node root) {
 			throw new UnsupportedOperationException("Not yet implemented");
+		}
+		
+		public ArrayList<Geometry> getItems() {
+			return items;
 		}
 	}
 	

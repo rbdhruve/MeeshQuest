@@ -16,10 +16,10 @@ import cmsc420.meeshquest.part2.comparators.CityNameComparator;
 import dictionaries.CoordDataDictionary;
 import dictionaries.NameDataDictionary;
 import spatialMaps.Node;
-import spatialMaps.PRQuadTree;
-import spatialMaps.PRQuadTree.BlackNode;
-import spatialMaps.PRQuadTree.GreyNode;
-import spatialMaps.PRQuadTree.WhiteNode;
+import spatialMaps.PMQuadtree;
+import spatialMaps.PMQuadtree.BlackNode;
+import spatialMaps.PMQuadtree.GreyNode;
+import spatialMaps.PMQuadtree.WhiteNode;
 
 public class CommandParser {
 	
@@ -42,6 +42,10 @@ public class CommandParser {
 				
 				Element command = results.createElement("command");
 				command.setAttribute("name", "listCities");
+				String id = elem.getAttribute("id");
+				if (!id.isEmpty()) {
+					command.setAttribute("id", id);
+				}
 				
 				Element parameters = results.createElement("parameters");
 				
@@ -74,6 +78,10 @@ public class CommandParser {
 				
 				Element command = results.createElement("command");
 				command.setAttribute("name", "listCities");
+				String id = elem.getAttribute("id");
+				if (!id.isEmpty()) {
+					command.setAttribute("id", id);
+				}
 				
 				Element parameters = results.createElement("parameters");
 				
@@ -109,6 +117,10 @@ public class CommandParser {
 			
 			Element command = results.createElement("command");
 			command.setAttribute("name", "listCities");
+			String id = elem.getAttribute("id");
+			if (!id.isEmpty()) {
+				command.setAttribute("id", id);
+			}
 			
 			Element parameters = results.createElement("parameters");
 			
@@ -125,6 +137,7 @@ public class CommandParser {
 	
 	public Element printTree(ArrayList<Node> arr, Document results, CoordDataDictionary cdd) {
 		Element quadtree = results.createElement("quadtree");
+		quadtree.setAttribute("order", "3");
 		return printTreeHelp(quadtree, arr, results, cdd);
 	}
 	
@@ -138,12 +151,35 @@ public class CommandParser {
 				root.remove(elem);
 				root.get(root.size()-1).appendChild(elem);
 			} else if (n.getClass().equals(BlackNode.class)) {
-				City c = (City) ((PRQuadTree<City>.BlackNode) n).getData();
+				ArrayList<Geometry> items = ((BlackNode) n).getItems();
 				Element black = results.createElement("black");
-				black.setAttribute("name", cdd.getName(c));
-				black.setAttribute("x", ((Integer) c.getXCoord()).toString());
-				black.setAttribute("y", ((Integer) c.getYCoord()).toString());
-				elem.appendChild(black);
+				black.setAttribute("cardinality", ((Integer) items.size()).toString());
+				for(Geometry g : items) {
+					if (g.getType() == Geometry.POINT) {
+						City c = (City) g;
+						Element city = results.createElement("city");
+						city.setAttribute("name", cdd.getName(c));
+						city.setAttribute("x", ((Integer) c.getXCoord()).toString());
+						city.setAttribute("y", ((Integer) c.getYCoord()).toString());
+						city.setAttribute("color", c.getColor());
+						city.setAttribute("radius", ((Integer) c.getRadius()).toString());
+						black.appendChild(city);
+					} else {
+						Road r = (Road) g;
+						Element road = results.createElement("road");
+						String start = cdd.getName(r.getStart());
+						String end = cdd.getName(r.getEnd());
+						if (end.compareTo(start) > 0) {
+							road.setAttribute("start", start);
+							road.setAttribute("end", end);
+							black.appendChild(road);
+						} else {
+							road.setAttribute("start", end);
+							road.setAttribute("end", start);
+							black.appendChild(road);
+						}
+					}
+				}
 			} else if (n.getClass().equals(WhiteNode.class)) {
 				Element white = results.createElement("white");
 				elem.appendChild(white);
@@ -161,67 +197,67 @@ public class CommandParser {
 		return root.get(0);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public CanvasPlus saveMap(int spatialWidth, int spatialHeight, ArrayList<Node> nodes, CoordDataDictionary cdd) {
-		CanvasPlus canvas = new CanvasPlus("MeeshQuest");
-		canvas.setFrameSize(spatialWidth, spatialHeight);
-		canvas.addRectangle(0, 0, spatialWidth, spatialHeight, Color.WHITE, true);
-		canvas.addRectangle(0, 0, spatialWidth, spatialHeight, Color.BLACK, false);
-		canvas.addLine(0, spatialHeight/2, spatialWidth, spatialHeight/2, Color.BLACK);
-		canvas.addLine(spatialWidth/2, 0, spatialWidth/2, spatialHeight, Color.BLACK);
-		
-		for (Node n : nodes) {
-			if (n != null) {
-				if (n.getClass().equals(PRQuadTree.BlackNode.class)) {
-					PRQuadTree<City>.BlackNode node = (PRQuadTree<City>.BlackNode) n;
-					City c = (City) node.getData();
-					canvas.addPoint(cdd.getName(c), c.getXCoord(), c.getYCoord(), Color.BLACK);
-				} else if (n.getClass().equals(PRQuadTree.GreyNode.class)) {
-					PRQuadTree<City>.GreyNode node = (PRQuadTree<City>.GreyNode) n;
-					canvas.addLine(node.getXmin(), (node.getYmax()+node.getYmin())/2, node.getXmax(), (node.getYmax()+node.getYmin())/2, Color.BLACK);
-    				canvas.addLine((node.getXmax()+node.getXmin())/2, node.getYmin(), (node.getXmax()+node.getXmin())/2, node.getYmax(), Color.BLACK);
-				}
-			}
-		}
-		
-		return canvas;
-	}
-	
-	public ArrayList<City> range(ArrayList<City> arr, Set<City> cities, int x, int y, int radius, PRQuadTree<City> tree) {
-		for (City c : cities) {
-			if (tree.containsElem(c)) {
-				int xCoord = c.getXCoord();
-				int yCoord = c.getYCoord();
-				if (Math.ceil(Math.sqrt((Math.pow(xCoord-x,2)) + (Math.pow(yCoord-y,2)))) <= radius) {
-					arr.add(c);
-				}
-			}
-		}
-		
-		return arr;
-	}
-	
-	public City nearest(Set<City> cities, int x, int y, PRQuadTree<City> tree, CoordDataDictionary cdd) {
-		int shortestDist = Integer.MAX_VALUE;
-		City closest = null;
-		CityNameComparator nameComp = new CityNameComparator();
-		for (City c : cities) {
-			if (tree.containsElem(c)) {
-				int xCoord = c.getXCoord();
-				int yCoord = c.getYCoord();
-				int dist = (int) Math.ceil(Math.sqrt((Math.pow(xCoord-x,2)) + (Math.pow(yCoord-y,2))));
-				if (dist < shortestDist) {
-					shortestDist = dist;
-					closest = c;
-				} else if (dist == shortestDist) {
-					if (nameComp.compare(cdd.getName(c), cdd.getName(closest)) < 0) {
-						closest = c;
-					}
-				}
-			}
-		}
-		
-		return closest;
-	}
+//	@SuppressWarnings("unchecked")
+//	public CanvasPlus saveMap(int spatialWidth, int spatialHeight, ArrayList<Node> nodes, CoordDataDictionary cdd) {
+//		CanvasPlus canvas = new CanvasPlus("MeeshQuest");
+//		canvas.setFrameSize(spatialWidth, spatialHeight);
+//		canvas.addRectangle(0, 0, spatialWidth, spatialHeight, Color.WHITE, true);
+//		canvas.addRectangle(0, 0, spatialWidth, spatialHeight, Color.BLACK, false);
+//		canvas.addLine(0, spatialHeight/2, spatialWidth, spatialHeight/2, Color.BLACK);
+//		canvas.addLine(spatialWidth/2, 0, spatialWidth/2, spatialHeight, Color.BLACK);
+//		
+//		for (Node n : nodes) {
+//			if (n != null) {
+//				if (n.getClass().equals(PRQuadTree.BlackNode.class)) {
+//					PRQuadTree<City>.BlackNode node = (PRQuadTree<City>.BlackNode) n;
+//					City c = (City) node.getData();
+//					canvas.addPoint(cdd.getName(c), c.getXCoord(), c.getYCoord(), Color.BLACK);
+//				} else if (n.getClass().equals(PRQuadTree.GreyNode.class)) {
+//					PRQuadTree<City>.GreyNode node = (PRQuadTree<City>.GreyNode) n;
+//					canvas.addLine(node.getXmin(), (node.getYmax()+node.getYmin())/2, node.getXmax(), (node.getYmax()+node.getYmin())/2, Color.BLACK);
+//    				canvas.addLine((node.getXmax()+node.getXmin())/2, node.getYmin(), (node.getXmax()+node.getXmin())/2, node.getYmax(), Color.BLACK);
+//				}
+//			}
+//		}
+//		
+//		return canvas;
+//	}
+//	
+//	public ArrayList<City> range(ArrayList<City> arr, Set<City> cities, int x, int y, int radius, PRQuadTree<City> tree) {
+//		for (City c : cities) {
+//			if (tree.containsElem(c)) {
+//				int xCoord = c.getXCoord();
+//				int yCoord = c.getYCoord();
+//				if (Math.ceil(Math.sqrt((Math.pow(xCoord-x,2)) + (Math.pow(yCoord-y,2)))) <= radius) {
+//					arr.add(c);
+//				}
+//			}
+//		}
+//		
+//		return arr;
+//	}
+//	
+//	public City nearest(Set<City> cities, int x, int y, PRQuadTree<City> tree, CoordDataDictionary cdd) {
+//		int shortestDist = Integer.MAX_VALUE;
+//		City closest = null;
+//		CityNameComparator nameComp = new CityNameComparator();
+//		for (City c : cities) {
+//			if (tree.containsElem(c)) {
+//				int xCoord = c.getXCoord();
+//				int yCoord = c.getYCoord();
+//				int dist = (int) Math.ceil(Math.sqrt((Math.pow(xCoord-x,2)) + (Math.pow(yCoord-y,2))));
+//				if (dist < shortestDist) {
+//					shortestDist = dist;
+//					closest = c;
+//				} else if (dist == shortestDist) {
+//					if (nameComp.compare(cdd.getName(c), cdd.getName(closest)) < 0) {
+//						closest = c;
+//					}
+//				}
+//			}
+//		}
+//		
+//		return closest;
+//	}
 
 }
