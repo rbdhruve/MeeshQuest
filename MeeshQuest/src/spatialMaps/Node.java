@@ -1,7 +1,10 @@
 package spatialMaps;
 
+import java.awt.geom.Rectangle2D;
+
 public abstract class Node {
 	private int xmin, xmax, ymin, ymax;
+	private Rectangle2D.Float region;
 
 	public int getXmin() {
 		return xmin;
@@ -17,6 +20,10 @@ public abstract class Node {
 
 	public int getYmax() {
 		return ymax;
+	}
+	
+	public Rectangle2D getRegion() {
+		return region;
 	}
 
 	public void setXmin(int xmin) {
@@ -35,5 +42,7 @@ public abstract class Node {
 		this.ymax = ymax;
 	}
 	
-	
+	public void setRegion(float x, float y, float w, float h) {
+		region = new Rectangle2D.Float(x, y, w, h);
+	}
 }
