@@ -2,27 +2,25 @@ package spatialMaps;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-
 import cmsc420.geom.Inclusive2DIntersectionVerifier;
 import cmsc420.meeshquest.part2.City;
 import cmsc420.meeshquest.part2.Geometry;
 import cmsc420.meeshquest.part2.Road;
 
-@SuppressWarnings("unchecked")
 public class PMQuadtree {
 	
 	private Node root;
 	private int height, width;
-	
+	private int numCities = 0;
 	public class BlackNode extends Node {
-		private ArrayList<Geometry> items;
+		private ArrayList<Geometry> items = new ArrayList<Geometry>();
 		
 		public BlackNode (int xmin, int xmax, int ymin, int ymax) {
 			super.setXmin(xmin);
 			super.setXmax(xmax);
 			super.setYmin(ymin);
 			super.setYmax(ymax);
-			super.setRegion(xmin, ymax, (xmax-xmin), (ymax-ymin));
+			super.setRegion(xmin, ymin, (xmax-xmin), (ymax-ymin));
 		}
 		
 		private boolean containsCity() {
@@ -58,12 +56,27 @@ public class PMQuadtree {
 			}
 		}
 		
+		private boolean isIsolated(Geometry g) {
+			if (items.contains(g)) {
+				for(Geometry geom : items) {
+					if (!g.equals(geom)) {
+						if (Inclusive2DIntersectionVerifier.intersects(((City) g).getPt() , ((Road) geom).getLine())) {
+							return false;
+						}
+					}
+				}
+				return true;
+			} else
+				return false;
+		}
+		
 		private Node add(Geometry g) {
-			if (g.getType() == Geometry.POINT && containsCity()) {
+			if (g.isCity() && containsCity()) {
 				return partition(g);
 			} else {
 				if (g.getType() == Geometry.POINT) {
 					items.add(0, g);
+					numCities++;
 				} else {
 					items.add(g);
 				}
@@ -87,6 +100,17 @@ public class PMQuadtree {
 		public ArrayList<Geometry> getItems() {
 			return items;
 		}
+		
+		public Geometry getGeom(Geometry g) {
+			for (Geometry geom : items) {
+				if ((g.isCity() && geom.isCity() && ((City) g).equals(geom)) ||
+						(g.isRoad() && geom.isRoad() && ((Road) g).equals(geom))) {
+					return geom;
+				}
+			}
+			
+			return null;
+		}
 	}
 	
 	public class GreyNode extends Node {
@@ -97,7 +121,7 @@ public class PMQuadtree {
 			super.setXmax(xmax);
 			super.setYmin(ymin);
 			super.setYmax(ymax);
-			super.setRegion(xmin, ymax, (xmax-xmin), (ymax-ymin));
+			super.setRegion(xmin, ymin, (xmax-xmin), (ymax-ymin));
 			NW = new WhiteNode(xmin,(xmax+xmin)/2,(ymax+ymin)/2,ymax);
 			NE = new WhiteNode(((xmax+xmin)/2),xmax,((ymax+ymin)/2),ymax);
 			SW = new WhiteNode(xmin,(xmax+xmin)/2,ymin,(ymax+ymin)/2);
@@ -211,7 +235,7 @@ public class PMQuadtree {
 			super.setXmax(xmax);
 			super.setYmin(ymin);
 			super.setYmax(ymax);
-			super.setRegion(xmin, ymax, (xmax-xmin), (ymax-ymin));
+			super.setRegion(xmin, ymin, (xmax-xmin), (ymax-ymin));
 		}
 		
 		private Node add(Geometry g) {
@@ -253,10 +277,33 @@ public class PMQuadtree {
 			}
 			
 			BlackNode b = ((GreyNode) root).containsGeom(coord);
-			return b.containsGeom(g);
-			
+			if (b != null)
+				return b.containsGeom(g);
+			else
+				return false;
 		} else {
 			return false;
+		}
+	}
+	
+	public Geometry getGeom(Geometry g) {
+		if (root.getClass().equals(BlackNode.class)) {
+			return ((BlackNode) root).getGeom(g);
+		} else if (root.getClass().equals(GreyNode.class)) {
+			Point2D.Float coord;
+			if (g.getType() == Geometry.POINT) {
+				coord = ((City) g).getPt();
+			} else {
+				coord = ((Road) g).getStart().getPt();
+			}
+			
+			BlackNode b = ((GreyNode) root).containsGeom(coord);
+			if (b != null)
+				return b.getGeom(g);
+			else
+				return null;
+		} else {
+			return null;
 		}
 	}
 	
@@ -264,6 +311,7 @@ public class PMQuadtree {
 		int spatialWidth = root.getXmax();
 		int spatialHeight = root.getYmax();
 		root = new WhiteNode(0, spatialWidth, 0, spatialHeight);
+		numCities = 0;
 	}
 	
 	public boolean isEmpty() {
@@ -286,8 +334,30 @@ public class PMQuadtree {
 			//End of Grey Node
 			arr.add(null);
 		}
-		
 		return arr;
+	}
+	
+	public boolean isIsolated(Geometry g) {
+		if (g.isCity()) {
+			if (containsGeom(g)) {
+				if (root.getClass().equals(BlackNode.class)) {
+					return ((BlackNode) root).isIsolated(g);
+				} else {
+					Point2D.Float coord = ((City) g).getPt();
+					
+					BlackNode b = ((GreyNode) root).containsGeom(coord);
+					return b.isIsolated(g);
+				}
+			} else {
+				return false;
+			}
+		} else {
+			throw new IllegalArgumentException("Argument must be a point");
+		}
+	}
+	
+	public int numCities() {
+		return numCities;
 	}
 	
 	public int getWidth() {

@@ -22,7 +22,7 @@ public abstract class Node {
 		return ymax;
 	}
 	
-	public Rectangle2D.Float getRegion() {
+	public Rectangle2D getRegion() {
 		return region;
 	}
 

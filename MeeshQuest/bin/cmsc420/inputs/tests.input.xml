@@ -1,0 +1,59 @@
+<commands xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="part2in.xsd"
+          spatialWidth="512" spatialHeight="512" pmOrder="3" leafOrder="1">
+
+	<createCity name="A" x="50" y="64" radius="0" color="red"/>
+    <createCity name="B" x="96" y="112" radius="0" color="red"/>
+    <createCity name="C" x="96" y="64" radius="0" color="red"/>
+    <createCity name="D" x="96" y="16" radius="0" color="red"/>
+    <createCity name="E" x="160" y="112" radius="0" color="red"/>
+    <createCity name="F" x="160" y="64" radius="0" color="red"/>
+    <createCity name="G" x="160" y="16" radius="0" color="red"/>
+
+    <createCity name="H" x="206" y="192" radius="0" color="red"/>
+    <createCity name="I" x="160" y="240" radius="0" color="red"/>
+    <createCity name="J" x="160" y="192" radius="0" color="red"/>
+    <createCity name="K" x="160" y="144" radius="0" color="red"/>
+    <createCity name="L" x="96" y="240" radius="0" color="red"/>
+    <createCity name="M" x="96" y="192" radius="0" color="red"/>
+    <createCity name="N" x="96" y="144" radius="0" color="red"/>
+    <createCity name="O" x="56" y="224" radius="0" color="red"/>
+    <createCity name="P" x="56" y="160" radius="0" color="red"/>
+
+    <createCity name="Q" x="200" y="96" radius="0" color="red"/><createCity name="R" x="200" y="32" radius="0" color="red"/>
+    
+    <mapRoad start="A" end="B"/>
+    <mapRoad start="A" end="C"/>
+    <mapRoad start="A" end="D"/>
+    <mapRoad start="B" end="C"/>
+    <mapRoad start="C" end="D"/>
+    <mapRoad start="B" end="E"/>
+    <mapRoad start="C" end="F"/>
+    <mapRoad start="D" end="G"/>
+    <mapRoad start="E" end="F"/>
+    <mapRoad start="F" end="G"/>
+    <mapRoad start="E" end="Q"/>
+    <mapRoad start="F" end="Q"/>
+    <mapRoad start="F" end="R"/>
+    <mapRoad start="G" end="R"/>
+
+    <mapRoad start="H" end="I"/>
+    <mapRoad start="H" end="J"/>
+    <mapRoad start="H" end="K"/>
+    <mapRoad start="I" end="J"/>
+    <mapRoad start="J" end="K"/>
+    <mapRoad start="I" end="L"/>
+    <mapRoad start="J" end="M"/>
+    <mapRoad start="K" end="N"/>
+    <mapRoad start="L" end="M"/>
+    <mapRoad start="M" end="N"/>
+    <mapRoad start="L" end="O"/>
+    <mapRoad start="M" end="O"/>
+    <mapRoad start="M" end="P"/>
+    <mapRoad start="N" end="P"/>   
+    
+    <shortestPath start="L" end="K" />
+    <shortestPath start="G" end="B" />
+	<saveMap name="scratchTest_02"/>
+	<nearestCity x="128" y="240" />
+</commands>

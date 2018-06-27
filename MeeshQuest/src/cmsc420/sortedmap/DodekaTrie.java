@@ -1,398 +1,769 @@
 package cmsc420.sortedmap;
 
-import java.util.ArrayList;
+import java.lang.reflect.Array;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.Map.Entry;
 
-import javax.activation.UnsupportedDataTypeException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-import cmsc420.meeshquest.part2.Pair;
-
-@SuppressWarnings("unchecked")
 public class DodekaTrie<K, V> implements SortedMap<K, V> {
-	
-	final int BRANCHING_FACTOR = 12;
-	Comparator<K> c = null;
-	int leafOrder;
-	Node root = null;
-	int modCount = 0;
-	
-	public class BlackNode extends Node {
-		private ArrayList<Pair<K,V>> bucket = new ArrayList<Pair<K,V>>();
-		private Node parent;
-		
-		public void insert(K key, V value) {
-			Pair<K,V> pair = new Pair<K,V>(key,value);
-			if (c == null) {
-				Comparable<? super K> k = (Comparable<? super K>) key;
-				for (int i = 0; i < bucket.size(); i++) {
-					if (k.compareTo(bucket.get(i).T()) < 0) {
-						bucket.add(i, pair);
-					} else if(k.compareTo(bucket.get(i).T()) == 0) {
-						bucket.remove(i);
-						bucket.add(i, pair);
-					}
+	private RootNode root;
+
+	private int size = 0;
+
+	private final int leafOrder;
+
+	private int height = 1;
+
+	protected int modCount = Integer.MIN_VALUE;
+	private int DEFAULT_LEAF_ORDER = 3;
+
+	class DefaultComparator implements Comparator<K> {
+		@SuppressWarnings("unchecked")
+		public int compare(K o1, K o2) {
+			if (o1 == null) {
+				if (o2 == null) {
+					return 0;
+				} else {
+					return -1;
 				}
-				if (!bucket.contains(pair)) {
-					bucket.add(pair);
+			} else {
+				if (o2 == null) {
+					return 1;
+				} else {
+					return ((Comparable<K>) o1).compareTo(o2);
 				}
- 			}
+			}
 		}
 	}
 
-	public class GrayNode extends Node {
-		private ArrayList<K> bucket = new ArrayList<K>();
-		private Node c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12;
-		
-		public GrayNode() {
-			c1 = new WhiteNode();
-			c2 = new WhiteNode();
-			c3 = new WhiteNode();
-			c4 = new WhiteNode();
-			c5 = new WhiteNode();
-			c6 = new WhiteNode();
-			c7 = new WhiteNode();
-			c8 = new WhiteNode();
-			c9 = new WhiteNode();
-			c10 = new WhiteNode();
-			c11 = new WhiteNode();
-			c12 = new WhiteNode();
-		}
-	}
-	
-	public class WhiteNode extends Node {
-		
-	}
-	
-	protected class EntrySet<T> implements Set<T> {
-
-		@Override
-		public boolean add(T arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean addAll(Collection<? extends T> arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public void clear() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public boolean contains(Object arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean containsAll(Collection<?> arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean isEmpty() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public Iterator<T> iterator() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean remove(Object arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean removeAll(Collection<?> arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean retainAll(Collection<?> arg0) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public int size() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		@Override
-		public Object[] toArray() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public <T> T[] toArray(T[] arg0) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		
-	}
-	
 	public DodekaTrie(int leafOrder) {
 		this.leafOrder = leafOrder;
+		root = new RootNode(new DefaultComparator(), leafOrder);
 	}
-	
-	public DodekaTrie(Comparator<K> c, int leafOrder) {
-		this.c = c;
+
+	public DodekaTrie(Comparator<K> comparator, int leafOrder) {
 		this.leafOrder = leafOrder;
-	}
-
-	@Override
-	public void clear() {
-		root = null;
-		
-	}
-
-	@Override
-	public boolean containsKey(Object key) {
-		return getHelp(root, (K) key).T() != null;
-	}
-	
-	private Pair<K,V> getHelp(Node root, K key) {
-		if (root == null) {
-			return null;
-		} else if (key == null) {
-			throw new NullPointerException("Argument 'key' is null");
+		if (comparator == null) {
+			comparator = new DefaultComparator();
 		}
-
-		if (root.getClass().equals(BlackNode.class)) {
-			BlackNode b = (BlackNode) root;
-			for (int i = 0; i < b.bucket.size(); i++) {
-				if (c == null) {
-					if (((Comparable<? super K>) key).compareTo(b.bucket.get(i).T()) == 0)
-						return b.bucket.get(i);
-				} else {
-					if (c.compare((K) key, b.bucket.get(i).T()) == 0)
-						return b.bucket.get(i);
-				}
-			}
-			return null;
-		} else {
-			GrayNode g = (GrayNode) root;
-			for (int i = 0; i < g.bucket.size(); i++) {
-				if (c == null) {
-					if (((Comparable<? super K>) key).compareTo(g.bucket.get(i)) < 0)
-						return chooseBranch((i+1), g, (K) key);
-				} else {
-					if (c.compare((K) key, g.bucket.get(i)) == 0)
-						return chooseBranch((i+1), g, (K) key);
-				}
-			}
-		}
-		return null;
-	}
-	
-	private Pair<K,V> chooseBranch(int child, GrayNode g, K key) {
-		switch (child) {
-		case 1: return getHelp(g.c1, key);
-		case 2: return getHelp(g.c2, key);
-		case 3: return getHelp(g.c3, key);
-		case 4: return getHelp(g.c4, key);
-		case 5: return getHelp(g.c5, key);
-		case 6: return getHelp(g.c6, key);
-		case 7: return getHelp(g.c7, key);
-		case 8: return getHelp(g.c8, key);
-		case 9: return getHelp(g.c9, key);
-		case 10: return getHelp(g.c10, key);
-		case 11: return getHelp(g.c11, key);
-		default: return getHelp(g.c12, key);
-		}
+		root = new RootNode(comparator, leafOrder);
 	}
 
-	@Override
-	public boolean containsValue(Object value) {
-		if (value == null || root == null) {
-			return false;
-		} else {
-			return containsValueHelp(root, (V) value);
-		}
-	}
-	
-	private boolean containsValueHelp(Node root, V value) {
-		if (root.getClass().equals(BlackNode.class)) {
-			for (Pair<K,V> pair : ((BlackNode) root).bucket) {
-				if (pair.U().equals(value)) {
-					return true;
-				}
-			}
-			return false;
-		} else if (root.getClass().equals(GrayNode.class)) {
-			GrayNode g = (GrayNode) root;
-			return containsValueHelp(g.c1, value) || containsValueHelp(g.c2, value) || containsValueHelp(g.c3, value) || containsValueHelp(g.c4, value) || 
-					containsValueHelp(g.c5, value) || containsValueHelp(g.c6, value) || containsValueHelp(g.c7, value) || containsValueHelp(g.c8, value) || 
-					containsValueHelp(g.c9, value) || containsValueHelp(g.c10, value) || containsValueHelp(g.c11, value) || containsValueHelp(g.c12, value);
-		} else {
-			return false;
-		}
-	}
-
-	@Override
-	public V get(Object key) {
-		return getHelp(root, (K) key).U();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return root == null;
-	}
-
-	@Override
-	public V put(K key, V value) {
-		Pair<Node,V> t = putHelp(key, value, root);
-		root = t.T();
-		return t.U();
-	}
-
-	private Pair<Node,V> putHelp(K key, V value, Node root) {
-		if (!containsKey(key)) {
-			if (root == null) {
-				root = new BlackNode();
-				((BlackNode) root).bucket.add(new Pair<K,V>(key,value));
-				modCount++;
-				return null;
-			} else if (root.getClass().equals(BlackNode.class)) {
-				if (((BlackNode) root).bucket.size() < leafOrder) {
-					((BlackNode) root).insert(key, value);
-				} else {
-					
-				}
-			}
-			return null;
-		} else {
-			
-		}
-		return null;
-	}
-	
-	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public int size() {
-		return sizeHelp(root);
-	}
-	
-	private int sizeHelp(Node root) {
-		if (root.getClass().equals(BlackNode.class)) {
-			return ((BlackNode) root).bucket.size();
-		} else if (root.getClass().equals(GrayNode.class)) {
-			GrayNode g = (GrayNode) root;
-			return sizeHelp(g.c1) + sizeHelp(g.c2) + sizeHelp(g.c3) + sizeHelp(g.c4) + 
-					sizeHelp(g.c5) + sizeHelp(g.c6) + sizeHelp(g.c7) + sizeHelp(g.c8) + 
-					sizeHelp(g.c9) + sizeHelp(g.c10) + sizeHelp(g.c11) + sizeHelp(g.c12);
-		} else {
-			return 0;
-		}
-	}
-
-	@Override
 	public Comparator<? super K> comparator() {
-		return c;
+		return root.getComparator();
 	}
 
-	@Override
-	public Set<Map.Entry<K, V>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public K firstKey() {
-		return firstKeyHelp(root);
-	}
-	
-	private K firstKeyHelp(Node root) {
-		if (root.getClass().equals(BlackNode.class)) {
-			return ((BlackNode) root).bucket.get(0).T();
-		} else {
-			return firstKeyHelp(((GrayNode) root).c1);
+		if (isEmpty()) {
+			throw new NoSuchElementException();
 		}
+
+		return root.getFirstLeaf().getKeys().get(0);
 	}
 
-	@Override
-	public K lastKey() {
-		return lastKeyHelp(root);
-	}
-	
-	private K lastKeyHelp(Node root) {
-		if (root.getClass().equals(BlackNode.class)) {
-			return ((BlackNode) root).bucket.get(((BlackNode) root).bucket.size()-1).T();
-		} else {
-			GrayNode g = (GrayNode) root;
-			int numChild = g.bucket.size();
-			switch(numChild) {
-				case 1: return lastKeyHelp(((GrayNode) root).c2);
-				case 2: return lastKeyHelp(((GrayNode) root).c3);
-				case 3: return lastKeyHelp(((GrayNode) root).c4);
-				case 4: return lastKeyHelp(((GrayNode) root).c5);
-				case 5: return lastKeyHelp(((GrayNode) root).c6);
-				case 6: return lastKeyHelp(((GrayNode) root).c7);
-				case 7: return lastKeyHelp(((GrayNode) root).c8);
-				case 8: return lastKeyHelp(((GrayNode) root).c9);
-				case 9: return lastKeyHelp(((GrayNode) root).c10);
-				case 10: return lastKeyHelp(((GrayNode) root).c11);
-				case 11: return lastKeyHelp(((GrayNode) root).c12);
-				default: return null;
-			}
-		}
-	}
-
-	@Override
-	public SortedMap<K, V> subMap(K fromKey, K toKey) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	// The following methods do not need to be implemented
-	@Override
-	public SortedMap<K, V> headMap(K toKey) {
+	public SortedMap<K, V> headMap(Object arg0) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
+	public K lastKey() {
+		if (isEmpty()) {
+			throw new NoSuchElementException();
+		}
+
+		LeafNode<K, V> l = root.getLastLeaf();
+		return l.getKeys().get(l.size() - 1);
+	}
+
+	public SortedMap<K, V> subMap(K arg0, K arg1) {
+		return new SubMap(this, arg0, arg1);
+	}
+
+	public SortedMap<K, V> tailMap(K arg0) {
+		throw new UnsupportedOperationException();
+	}
+
+	public void clear() {
+		root = new RootNode(root.getComparator(), leafOrder);
+		size = 0;
+		modCount++;
+	}
+
+	@SuppressWarnings("unchecked")
+	public boolean containsKey(Object key) {
+		if (key == null) {
+			throw new NullPointerException();
+		}
+
+		return root.contains((K) key);
+	}
+
+	public boolean containsValue(Object arg0) {
+		for (Map.Entry<K, V> entry : entrySet()) {
+			if (entry.getValue().equals(arg0)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Set<Map.Entry<K, V>> entrySet() {
+		return new EntrySet();
+	}
+
+	@SuppressWarnings("unchecked")
+	public V get(Object key) {
+		if (key == null) {
+			throw new NullPointerException();
+		}
+
+		return root.get((K) key);
+	}
+
+	public boolean isEmpty() {
+		return size == 0;
+	}
+
 	public Set<K> keySet() {
 		throw new UnsupportedOperationException();
 	}
-	
-	@Override
-	public V remove(Object key) {
+
+	private int compare(Object k1, Object k2) {
+		return root.comparator == null ? ((Comparable<? super K>) k1)
+				.compareTo((K) k2) : root.comparator.compare((K) k1, (K) k2);
+	}
+
+	public V put(K key, V value) {
+		if (key == null) {
+			throw new NullPointerException();
+		}
+
+		V oldVal = get(key);
+		if (!root.contains(key) && size != Integer.MAX_VALUE) {
+			size++;
+		}
+
+		root.put(key, value);
+		modCount++;
+		return oldVal;
+	}
+
+	public void putAll(Map<? extends K, ? extends V> map) {
+		for (Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
+			put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	public V remove(Object arg0) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public SortedMap<K, V> tailMap(K fromKey) {
-		throw new UnsupportedOperationException();
+	public int size() {
+		return size;
 	}
 
-	@Override
 	public Collection<V> values() {
 		throw new UnsupportedOperationException();
 	}
 
+	public boolean equals(Object arg0) {
+		if (arg0 instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<K, V> m1 = (Map<K, V>) arg0;
+			return m1.entrySet().equals(entrySet());
+		}
+		return false;
+	}
+
+	public int hashCode() {
+		return entrySet().hashCode();
+	}
+
+	public String toString() {
+		Iterator<Map.Entry<K,V>> i = entrySet().iterator();
+		if (! i.hasNext()) {
+			return "{}";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append('{');
+		for (;;) {
+			Map.Entry<K,V> e = i.next();
+			K key = e.getKey();
+			V value = e.getValue();
+			sb.append(key   == this ? "(this Map)" : key);
+			sb.append('=');
+			sb.append(value == this ? "(this Map)" : value);
+			if (! i.hasNext())
+				return sb.append('}').toString();
+			sb.append(", ");
+		}
+	}
+
+	public void addToXmlDoc(Document doc, Element parentNode) {
+		Element dodekaTrie = doc.createElement("DodekaTrie");
+		dodekaTrie.setAttribute("cardinality", Integer.toString(size()));
+		dodekaTrie.setAttribute("leafOrder", Integer.toString(leafOrder));
+		root.addToXmlDoc(doc, dodekaTrie);
+		parentNode.appendChild(dodekaTrie);
+	}
+
+	private class RootNode extends Node<K, V> {
+		private Node<K, V> me;
+
+		private EndNode<K, V> first;
+
+		private EndNode<K, V> last;
+
+		private int leafOrder;
+
+		public RootNode(Comparator<K> comparator, int leafOrder) {
+			super(comparator, NodeType.ROOT);
+			this.leafOrder = leafOrder;
+			LeafNode<K, V> tmp = new LeafNode<K, V>(comparator, this.leafOrder);
+			this.first = new EndNode<K, V>();
+			this.last = new EndNode<K, V>();
+			this.first.setRight(tmp);
+			this.last.setLeft(tmp);
+			tmp.setLeft(first);
+			tmp.setRight(last);
+			this.me = tmp;
+		}
+
+		public V get(K key) {
+			return me.get(key);
+		}
+
+		public V remove(K key) {
+			throw new UnsupportedOperationException();
+		}
+
+		public void put(K key, V value) {
+			if (me.isFull()) {
+				// dummy new root
+				GuideNode<K, V> newRoot = new GuideNode<K, V>(
+						me.getComparator());
+				newRoot.setLeft(new EndNode<K, V>());
+				newRoot.setRight(new EndNode<K, V>());
+				newRoot.getLeft().setRight(newRoot);
+				newRoot.getRight().setLeft(newRoot);
+				me.setParent(newRoot);
+				me.put(key, value);
+				if (newRoot.size() > 0) {
+					me = newRoot;
+					height++;
+				} else {
+					me.setParent(null);
+				}
+			} else {
+				me.put(key, value);
+			}
+		}
+
+		public LeafNode<K, V> getFirstLeaf() {
+			return (LeafNode<K, V>) first.getRight();
+		}
+
+		public LeafNode<K, V> getLastLeaf() {
+			return (LeafNode<K, V>) last.getLeft();
+		}
+
+		public void addToXmlDoc(Document doc, Element parent) {
+			me.addToXmlDoc(doc, parent);
+		}
+	}
+
+	private class Entry implements Map.Entry<K, V> {
+		private K key;
+		private PrivateNodeIterator srcItr;
+
+		public Entry(K key, PrivateNodeIterator srcItr) {
+			this.key = key;
+			this.srcItr = srcItr;
+		}
+
+		public K getKey() {
+			return key;
+		}
+
+		public V getValue() {
+			return get(key);
+		}
+
+		public V setValue(V arg0) {
+			if (srcItr == null) {
+				throw new IllegalStateException(
+						"this entry is readonly because it is not created by an iterator");
+			}
+			V ret = put(key, arg0);
+			srcItr.setModCount(DodekaTrie.this.modCount);
+			return ret;
+		}
+
+		public boolean equals(Object arg0) {
+			if (arg0 instanceof Map.Entry) {
+				@SuppressWarnings("unchecked")
+				Map.Entry<K, V> e2 = (Map.Entry<K, V>) arg0;
+				return (key == null ? e2.getKey() == null : key.equals(e2
+						.getKey()))
+						&& (getValue() == null ? e2.getValue() == null
+						: getValue().equals(e2.getValue()));
+			}
+			return false;
+		}
+
+		public int hashCode() {
+			return (key == null ? 0 : key.hashCode())
+					^ (getValue() == null ? 0 : getValue().hashCode());
+		}
+
+		public String toString() {
+			return key + "=" + getValue();
+		}
+	}
+
+	private class EntrySet extends AbstractSet<Map.Entry<K, V>> {
+		public boolean add(Map.Entry<K, V> arg0) {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean addAll(Collection<? extends Map.Entry<K, V>> arg0) {
+			throw new UnsupportedOperationException();
+		}
+
+		public void clear() {
+			DodekaTrie.this.clear();
+		}
+
+		public boolean contains(Object entry) {
+			if (entry instanceof Map.Entry) {
+				@SuppressWarnings("unchecked")
+				Map.Entry<K, V> e1 = (Map.Entry<K, V>) entry;
+				Object value = DodekaTrie.this.get(e1.getKey());
+				return e1.getValue() == null ? value == null : e1.getValue()
+						.equals(value);
+			}
+			return false;
+		}
+
+		public boolean containsAll(Collection<?> entries) {
+			boolean flag = true;
+			for (Object o : entries) {
+				flag = flag && contains(o);
+			}
+			return flag;
+		}
+
+		public boolean isEmpty() {
+			return DodekaTrie.this.isEmpty();
+		}
+
+		public Iterator<Map.Entry<K, V>> iterator() {
+			return new EntryIterator();
+		}
+
+		@SuppressWarnings("unchecked")
+		public boolean remove(Object entry) {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean removeAll(Collection<?> entries) {
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean retainAll(Collection<?> entries) {
+			throw new UnsupportedOperationException();
+		}
+
+		public int size() {
+			return DodekaTrie.this.size();
+		}
+
+		public Object[] toArray() {
+			Object[] arr = new Object[size()];
+			Iterator<Map.Entry<K, V>> it = new EntryIterator();
+			for (int i = 0; it.hasNext(); i++) {
+				arr[i] = it.next();
+			}
+			return arr;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <T> T[] toArray(T[] array) {
+			if (array.length < size())
+				array = (T[]) Array.newInstance(array.getClass()
+						.getComponentType(), size());
+
+			Iterator<Map.Entry<K, V>> it = new EntryIterator();
+			for (int i = 0; it.hasNext(); i++) {
+				array[i] = (T) it.next();
+			}
+			return array;
+		}
+
+		public boolean equals(Object arg0) {
+			if (arg0 instanceof Set) {
+				@SuppressWarnings("unchecked")
+				Set<Map.Entry<K, V>> s1 = (Set<Map.Entry<K, V>>) arg0;
+				if (s1.size() != size()) {
+					return false;
+				}
+
+				Iterator<Map.Entry<K, V>> it = s1.iterator();
+				while (it.hasNext()) {
+					if (!contains(it.next())) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		}
+
+		public int hashCode() {
+			int hashCode = 0;
+			for (Map.Entry<K, V> entry : this) {
+				hashCode += entry.hashCode();
+			}
+			return hashCode;
+		}
+
+		private class EntryIterator extends PrivateNodeIterator<Map.Entry<K, V>> {
+			private Entry curr, prev;
+			private LeafNode<K, V> currNode;
+			private Iterator<K> it;
+
+			public EntryIterator() {
+				modCount = DodekaTrie.this.modCount;
+				if (DodekaTrie.this.isEmpty())
+					return;
+
+				this.currNode = root.getFirstLeaf();
+				this.it = currNode.leafKeyIterator();
+
+				while (curr == null
+						|| DodekaTrie.this.comparator().compare(curr.getKey(),
+								DodekaTrie.this.firstKey()) < 0) {
+					if (!it.hasNext()) {
+						if (currNode.getRight() instanceof EndNode)
+							return;
+
+						currNode = (LeafNode<K, V>) currNode.getRight();
+						it = currNode.leafKeyIterator();
+						continue;
+					}
+
+					curr = new Entry(it.next(), this);
+				}
+			}
+
+			public boolean hasNext() {
+				if (modCount != DodekaTrie.this.modCount) {
+					throw new ConcurrentModificationException();
+				}
+				return curr != null;
+			}
+
+			public Map.Entry<K, V> next() {
+				if (modCount != DodekaTrie.this.modCount)
+					throw new ConcurrentModificationException();
+
+				if (curr == null)
+					throw new NoSuchElementException();
+
+				if (!it.hasNext() && !(currNode.getRight() instanceof EndNode)) {
+					currNode = (LeafNode<K, V>) currNode.getRight();
+					it = currNode.leafKeyIterator();
+					return next();
+				}
+				prev = curr;
+				if (it.hasNext() && curr != null
+						&& DodekaTrie.this.lastKey() != null
+						&& cmp(curr.getKey(), DodekaTrie.this.lastKey()) < 0)
+					curr = new Entry(it.next(), this);
+				else
+					curr = null;
+
+				return prev;
+			}
+
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+
+			private int cmp(K k1, K k2) {
+				return DodekaTrie.this.comparator().compare(k1, k2);
+			}
+		}
+	}
+
+	abstract class PrivateNodeIterator<T> implements Iterator<T> {
+		private int modCount;
+		public void setModCount(int modCount) {
+			this.modCount = modCount;
+		}
+	}
+
+	final class SubMap<K, V> extends AbstractMap<K, V> implements SortedMap<K, V> {
+		final DodekaTrie<K, V> m;
+		final K low;
+		final K high;
+		EntrySetView entrySetView = null;
+
+		SubMap(DodekaTrie<K, V> m, K low, K high) {
+			if (low == null && high == null)
+				throw new IllegalArgumentException();
+
+			if (low != null && high != null)
+				if (m.compare(low, high) > 0)
+					throw new IllegalArgumentException();
+
+			this.m = m;
+			this.low = low;
+			this.high = high;
+		}
+
+		public Comparator<? super K> comparator() {
+			return m.comparator();
+		}
+
+		public final V put(K key, V value) {
+			if (!inRange(key))
+				throw new IllegalArgumentException("key out of range");
+			return m.put(key, value);
+		}
+
+		public final V remove(Object key) {
+			throw new UnsupportedOperationException();
+		}
+
+		// TODO FIX
+		public K firstKey() {
+			if (m.isEmpty()) {
+				throw new NoSuchElementException();
+			}
+
+			if (low == null) {
+				return m.firstKey();
+			}
+
+			Iterator<Entry<K, V>> iter = m.entrySet().iterator();
+			Entry<K,V> curr = null;
+			if (iter.hasNext()) {
+				curr = iter.next();
+			} else {
+				return null;
+			}
+			while (iter.hasNext() && cmp(curr.getKey(), low) < 0) {
+				curr = iter.next();
+			}
+
+			if (cmp(curr.getKey(), low) < 0 || (high != null && cmp(curr.getKey(), high) >= 0)) {
+				throw new NoSuchElementException();
+			} else {
+				return curr.getKey();
+
+			}			
+		}
+
+		// TODO FIX
+		public K lastKey() {
+			if (m.isEmpty()) {
+				throw new NoSuchElementException();
+			}
+			if (high == null) {
+				return m.lastKey();
+			}
+
+			Iterator<Entry<K, V>> iter = m.entrySet().iterator();
+			Entry<K,V> curr = null, prev = null;
+			if (iter.hasNext()) {
+				curr = iter.next();
+			} else {
+				return null;
+			}
+			while (iter.hasNext() && cmp(curr.getKey(), high) < 0) {
+				prev = curr;
+				curr = iter.next();
+			}
+
+			if (!iter.hasNext() && cmp(curr.getKey(), high) < 0) {
+				prev = curr;
+			}
+
+			if (cmp(prev.getKey(), low) < 0 || cmp(prev.getKey(), high) >= 0) {
+				System.out.println(prev.getKey());
+				throw new NoSuchElementException();
+			} else {
+				return prev.getKey();
+			}			
+		}
+
+		private int cmp(K k1, K k2) {
+			return m.root.comparator.compare(k1, k2);
+		}
+
+		public Set<Map.Entry<K, V>> entrySet() {
+			EntrySetView esv = entrySetView;
+			return (esv != null) ? esv : (entrySetView = new EntrySetView());
+		}
+
+		public SortedMap<K, V> headMap(K toKey) {
+			if (!inRange(toKey))
+				throw new IllegalArgumentException();
+
+			return new SubMap<K, V>(m, low, toKey);
+		}
+
+		public SortedMap<K, V> subMap(K fromKey, K toKey) {
+			if (!inRange(fromKey) || !inRange(toKey))
+				throw new IllegalArgumentException();
+
+			return new SubMap<K, V>(m, fromKey, toKey);
+		}
+
+		public SortedMap<K, V> tailMap(K fromKey) {
+			if (!inRange(fromKey))
+				throw new IllegalArgumentException();
+
+			return new SubMap<K, V>(m, fromKey, high);
+		}
+
+		final boolean tooLow(Object key) {
+			if (low != null) {
+				int c = m.compare(key, low);
+				if (c < 0)
+					return true;
+			}
+			return false;
+		}
+
+		final boolean tooHigh(Object key) {
+			if (high != null) {
+				int c = m.compare(key, high);
+				if (c >= 0)
+					return true;
+			}
+			return false;
+		}
+
+		final boolean inRange(Object key) {
+			return !tooLow(key) && !tooHigh(key);
+		}
+
+		public boolean equals(final Object other) {
+			if (other == this)
+				return true;
+			else if (other instanceof SubMap) {
+				@SuppressWarnings("unchecked")
+				SubMap<?, ?> otherMap = (SubMap<?, ?>) other;
+				return otherMap.m.equals(m) && low == null
+						^ low.equals(otherMap.low) && high == null
+						^ high.equals(otherMap.low);
+			} else if (other instanceof Map) {
+				Map<?, ?> otherMap = (Map<?, ?>) other;
+				return entrySet().containsAll(otherMap.entrySet())
+						&& otherMap.size() == size();
+			} else
+				return false;
+		}
+
+		class EntrySetView extends AbstractSet<Map.Entry<K, V>> {
+			public Iterator<Map.Entry<K, V>> iterator() {
+				return new SubMapEntrySetIterator() ;
+			}
+			public int size() {
+				int size = 0;
+				Iterator<Entry<K, V>> i = iterator();
+				while (i.hasNext()) {
+					size++;
+					i.next();
+				}
+				return size;
+			}
+
+			public boolean remove(Object o) {
+				throw new UnsupportedOperationException();
+			}
+		}
+
+		class SubMapEntrySetIterator extends PrivateNodeIterator<Map.Entry<K, V>> {
+			int expectedModCount = m.modCount;
+			private cmsc420.sortedmap.DodekaTrie.Entry curr, prev;
+			private LeafNode<K, V> currNode;
+			private Iterator<K> it;
+
+			public SubMapEntrySetIterator() {
+
+				if (m.isEmpty())
+					return;
+
+				this.currNode = m.root.getFirstLeaf();
+				this.it = currNode.leafKeyIterator();
+
+				try {
+					while (curr == null	|| cmp((K) curr.getKey(), firstKey()) < 0) {
+						if (!it.hasNext()) {
+							if (currNode.getRight() instanceof EndNode)
+								return;
+
+							currNode = (LeafNode<K, V>) currNode.getRight();
+							it = currNode.leafKeyIterator();
+							continue;
+						}
+
+						curr = new DodekaTrie.Entry(it.next(), this);
+					}
+				}  catch (NoSuchElementException e) {}
+			}
+
+			public boolean hasNext() {
+				if (curr != null)
+					return inRange(curr.getKey());
+				else
+					return false;
+			}
+
+			public Map.Entry<K, V> next() {
+				if (m.modCount != expectedModCount)
+					throw new ConcurrentModificationException();
+
+				if (curr == null)
+					throw new NoSuchElementException();
+
+				if (!it.hasNext() && !(currNode.getRight() instanceof EndNode) && cmp((K) curr.getKey(), high) < 0) {
+					currNode = (LeafNode<K, V>) currNode.getRight();
+					it = currNode.leafKeyIterator();
+					return next();
+				}
+				prev = curr;
+				if (it.hasNext() && curr != null
+						&& m.lastKey() != null
+						&& cmp((K) curr.getKey(), (K) lastKey()) < 0)
+					curr = new DodekaTrie.Entry(it.next(), this);
+				else
+					curr = null;
+
+				return prev;
+			}
+
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+
+			public void setModCount(int modCount) {
+				this.expectedModCount = modCount;
+			}
+		}
+	}
 }

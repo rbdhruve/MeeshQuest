@@ -36,6 +36,10 @@ public class Road extends Geometry {
 		return line;
 	}
 	
+	public double getLength() {
+		return length;
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
@@ -54,5 +58,11 @@ public class Road extends Geometry {
 	public int getType() {
 		return SEGMENT;
 	}
+	
+	@Override
+	public String toString() {
+		return "Road: start= " + start + " end= " + end; 
+	}
 
 }
+ 

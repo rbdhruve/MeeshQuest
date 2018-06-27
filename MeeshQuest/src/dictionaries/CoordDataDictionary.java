@@ -3,8 +3,8 @@ package dictionaries;
 import java.util.Set;
 import java.util.TreeMap;
 
+import cmsc420.geometry.oldComparators.CityCoordComparator;
 import cmsc420.meeshquest.part2.City;
-import cmsc420.meeshquest.part2.comparators.CityCoordComparator;
 
 public class CoordDataDictionary {
 
